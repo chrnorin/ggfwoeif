@@ -1,0 +1,2259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <title>GoGetta GG</title>
+
+  <style>
+    :root{
+      --bg:#0b0b0c; --card:#141417; --card2:#1b1b20; --txt:#f2f2f2; --muted:#a7a7b3;
+      --line:#2a2a33; --accent:#66a3ff; --ok:#52d273; --bad:#ff6b6b; --chip:#23232b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    button,input,select,textarea{font:inherit}
+    .app{max-width:1100px;margin:0 auto;min-height:100svh;display:flex;flex-direction:column}
+    header{position:sticky;top:0;z-index:20;background:rgba(11,11,12,.92);backdrop-filter: blur(10px);border-bottom:1px solid var(--line)}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px}
+    .brand{font-weight:900;letter-spacing:.4px}
+    .tabs{display:flex;gap:8px;overflow:auto;padding:10px 10px 12px}
+    .tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--txt);
+      padding:8px 10px;border-radius:12px;opacity:.9;cursor:pointer}
+    .tab.active{border-color:rgba(102,163,255,.7);box-shadow:0 0 0 3px rgba(102,163,255,.12) inset;opacity:1}
+    main{flex:1;padding:12px}
+
+    .grid{display:grid;gap:10px}
+    @media (min-width:860px){ .grid.cols2{grid-template-columns:1fr 1fr} .grid.cols3{grid-template-columns:1fr 1fr 1fr} }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .card h2,.card h3{margin:0 0 10px}
+    .row{display:flex;gap:10px;align-items:center}
+    .row.wrap{flex-wrap:wrap}
+    .sp{justify-content:space-between}
+    .muted{color:var(--muted)}
+    .kicker{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .btn{border:1px solid var(--line);background:var(--card2);color:var(--txt);
+      padding:8px 10px;border-radius:12px;cursor:pointer}
+    .btn:hover{filter:brightness(1.05)}
+    .btn.primary{border-color:rgba(102,163,255,.6)}
+    .btn.ok{border-color:rgba(82,210,115,.55)}
+    .btn.bad{border-color:rgba(255,107,107,.6)}
+    .btn.ghost{background:transparent}
+    .btn.small{padding:6px 8px;border-radius:10px}
+    .pillbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{border:1px solid var(--line);background:transparent;color:var(--txt);
+      padding:7px 10px;border-radius:999px;cursor:pointer}
+    .pill.active{border-color:rgba(102,163,255,.7);box-shadow:0 0 0 3px rgba(102,163,255,.12) inset}
+
+    input,select,textarea{
+      background:#0f0f12;border:1px solid var(--line);color:var(--txt);
+      padding:10px;border-radius:12px;outline:none
+    }
+    textarea{min-height:110px;resize:vertical}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .hr{height:1px;background:var(--line);margin:10px 0}
+
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px}
+    .title{font-weight:900}
+    .meta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);margin-top:4px}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--muted)}
+    .xpbar{height:10px;background:#0f0f12;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+    .xpbar > div{height:100%;background:linear-gradient(90deg, rgba(102,163,255,.95), rgba(82,210,115,.95))}
+
+    /* Modal */
+    .modalBackdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.62);
+      display:none; align-items:center; justify-content:center; padding:14px; z-index:999;
+    }
+    .modalBackdrop.show{display:flex}
+    .modal{
+      width:min(720px,100%); background:var(--card); border:1px solid var(--line);
+      border-radius:18px; padding:12px;
+      box-shadow:0 20px 80px rgba(0,0,0,.55);
+    }
+    .modal header{position:static;background:transparent;border:0;padding:0;margin-bottom:10px}
+    .modalTitle{font-weight:900}
+
+    /* Graph */
+    .graphWrap{
+      position:relative;
+      width:100%;
+      min-height:520px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      overflow:auto;
+    }
+    .graphStage{ position:relative; width:1100px; height:620px; }
+    .graphLines{ position:absolute; inset:0; pointer-events:none; }
+
+    .node{
+      position:absolute;
+      width:220px;
+      border:1px solid var(--line);
+      background:var(--card2);
+      border-radius:14px;
+      padding:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .node:hover{ filter:brightness(1.06); }
+    .nodeTitle{ font-weight:900; }
+    .nodeMeta{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .nodeBtns{
+      position:absolute;
+      top:8px;
+      right:8px;
+      display:flex;
+      gap:6px;
+    }
+    .nodeBtn{
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--txt);
+      width:28px;height:28px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+    .nodeBtn.ok{ border-color:rgba(82,210,115,.55); }
+    .nodeBtn.primary{ border-color:rgba(102,163,255,.6); }
+
+    /* Mini mission/habit boxes under nodes */
+    .miniStack{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+    .miniBox{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:8px;
+      font-size:12px;
+    }
+    .miniBox.blue{
+      background: rgba(102,163,255,.12);
+      border-color: rgba(102,163,255,.35);
+    }
+    .miniBox.green{
+      background: rgba(82,210,115,.12);
+      border-color: rgba(82,210,115,.35);
+    }
+    .miniTitle{ font-weight:800; margin-bottom:6px; }
+    .miniRow{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .miniRow .btn{ padding:6px 8px; border-radius:10px; }
+
+    /* Skillsmap "static overview" (NOT clickable) */
+    .mapGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .mapPanel{
+      background:transparent;
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .mapPanelHeader{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between;
+      background:rgba(255,255,255,.02);
+    }
+    .mapPanelHeader .code{ font-weight:900; letter-spacing:.08em; }
+    .mapBoxes{
+      padding:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-content:flex-start;
+      min-height:220px;
+    }
+    .mapBox{
+      pointer-events:none; /* NOT CLICKABLE */
+      user-select:none;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      color:var(--txt);
+      border-radius:12px;
+      padding:8px 10px;
+      font-size:12px;
+      max-width:100%;
+    }
+
+    .hint{font-size:12px;color:var(--muted)}
+    .danger{color:var(--bad)}
+    .oktxt{color:var(--ok)}
+    .accent{color:var(--accent)}
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <div class="topbar">
+      <div class="brand">GoGetta GG</div>
+      <div class="row">
+        <button class="btn small ghost" id="notesBtnTop">Notes</button>
+        <button class="btn small ghost" id="exportBtn">Export</button>
+        <button class="btn small ghost" id="importBtn">Import</button>
+        <button class="btn small ghost danger" id="resetBtn">Reset</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </header>
+
+  <main id="main"></main>
+</div>
+
+<!-- Modal -->
+<div class="modalBackdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <div class="modal">
+    <header class="row sp">
+      <div class="modalTitle" id="modalTitle">Modal</div>
+      <button class="btn small ghost" id="modalClose">✕</button>
+    </header>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   XP TABLE (TOTAL XP PER LEVEL)
+========================= */
+const XP_TOTAL_BY_LEVEL = new Map([
+  [1,0],[2,2],[3,4],[4,6],[5,8],[6,11],[7,14],[8,17],[9,20],[10,24],
+  [11,26],[12,28],[13,30],[14,31],[15,32],[16,34],[17,36],[18,38],[19,39],[20,40],
+  [21,43],[22,46],[23,49],[24,52],[25,55],[26,58],[27,61],[28,64],[29,67],[30,70],
+  [31,74],[32,78],[33,82],[34,86],[35,90],[36,94],[37,98],[38,102],[39,106],[40,110],
+  [41,117],[42,124],[43,131],[44,138],[45,145],[46,153],[47,161],[48,169],[49,177],[50,183],
+  [51,192],[52,201],[53,210],[54,219],[55,230],[56,245],[57,260],[58,275],[59,290],[60,303],
+  [61,318],[62,333],[63,348],[64,363],[65,380],[66,405],[67,430],[68,455],[69,480],[70,503],
+  [71,532],[72,561],[73,590],[74,620],[75,650],[76,687],[77,724],[78,761],[79,798],[80,834],
+  [81,867],[82,900],[83,933],[84,966],[85,1000],[86,1030],[87,1060],[88,1090],[89,1120],[90,1150],
+  [91,1176],[92,1202],[93,1228],[94,1254],[95,1280],[96,1306],[97,1332],[98,1358],[99,1384],
+]);
+
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function levelFromTotalXp(totalXp){
+  let lvl = 1;
+  for (let i=1;i<=99;i++){
+    const need = XP_TOTAL_BY_LEVEL.get(i) ?? Infinity;
+    if (need <= totalXp) lvl = i; else break;
+  }
+  return lvl;
+}
+function xpProgress(totalXp){
+  const lvl = levelFromTotalXp(totalXp);
+  const curNeed = XP_TOTAL_BY_LEVEL.get(lvl) ?? 0;
+  const nextNeed = XP_TOTAL_BY_LEVEL.get(lvl+1);
+  if (!nextNeed && lvl>=99) return {lvl, cur: totalXp-curNeed, need: 0, pct: 1, nextNeed: null};
+  const span = nextNeed - curNeed;
+  const cur = totalXp - curNeed;
+  const pct = span>0 ? clamp(cur/span, 0, 1) : 0;
+  return {lvl, cur, need: span, pct, nextNeed};
+}
+
+/* =========================
+   MAINSKILLS
+========================= */
+const MAINSKILLS = [
+  { code:"SOC", name:"Social" },
+  { code:"MEN", name:"Mental" },
+  { code:"FIN", name:"Financial" },
+  { code:"PHY", name:"Physical" },
+  { code:"LEA", name:"Leadership" },
+  { code:"APP", name:"Appearance" },
+  { code:"DIE", name:"Diet" },
+  { code:"SCH", name:"School" },
+  { code:"HOM", name:"Homelife" },
+  { code:"CAR", name:"Career" },
+  { code:"SID", name:"Sidehustle" },
+  { code:"BUS", name:"Business" },
+  { code:"HOB", name:"Hobbies" },
+  { code:"WOR", name:"Work" },
+  { code:"DAT", name:"Dating" },
+];
+
+const DEFAULT_SUBSKILLS_BY_MAIN = {
+  SOC: ["Friends","Communication","Relationship","Family","Social Media","Contacts/Networking","Conversations","Hooking/Flirting","Calls","Winks","Group Conversations","Conversations with Stranger"],
+  MEN: ["Knowledge","Creative/Endeavours","Spiritual","Nutrition","Reading","Meditation","Sex","Cold Showers","Yoga","Research","Motivation","No Gaming / No Social Media","Power","Kindness","Pray/Manifest","Gratitude"],
+  FIN: ["Economy","Spreadsheet","Budget","Saving","HB/Account","Savings Account","Investing","Crypto","Stocks","CNS","FM Loans","Gifts","Bills"],
+  PHY: ["Workout","Cardio","Sports Activity","Workout Equipment","Gym","Volume","Calories","Vitamins/Supplements","Arms","Mountaineering","Sauna","Chest","Steps","Running","Legs","Homegym","Dieting"],
+  APP: ["Hygiene","Grooming","Flowers","Transportation","Personal Development","Brushing","Add Beauty Daily","Bike","Haircuts","Fighter","BKL"],
+  DIE: ["Health","Kill Fuel","Invest in Eli","Food Logging / Cal Counting","OM","LCL Meals","Research Diet","Weight","Control Impulses","Supplements"],
+  HOM: ["Groceries","Cleaning","Decorum","Washing Clothes","Cooking","Computer","Flowers"],
+  SCH: ["Theory","Practice","AI in School"],
+  LEA: [], CAR: [], SID: [], BUS: [], HOB: [], WOR: [], DAT: [],
+};
+
+function mainskillName(code){
+  return MAINSKILLS.find(m=>m.code===code)?.name || code;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c)=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[c]);
+}
+function el(html){
+  const d = document.createElement("div");
+  d.innerHTML = html.trim();
+  return d.firstElementChild;
+}
+function cryptoId(){
+  if (crypto?.randomUUID) return crypto.randomUUID();
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
+/* =========================
+   STATE
+========================= */
+const STORE_KEY = "gogetta_tree_v4_notes";
+
+function defaultState(){
+  const skills = {};
+  const subskills = {};
+
+  for (const m of MAINSKILLS){
+    skills[m.code] = { totalXp: 0 };
+    const base = DEFAULT_SUBSKILLS_BY_MAIN[m.code] || [];
+    for (const s of base){
+      const id = `${m.code}__${s}`;
+      subskills[id] = { id, mainCode: m.code, name: s, parentId: null, totalXp: 0 };
+    }
+  }
+
+  return {
+    version: 4,
+    profile: { username: "Player", note: "" },
+
+    skills,
+    subskills,
+
+    missions: [],  // {id,title,desc,mainCode,nodeId,points,maxReps|null}
+    habits: [],    // {id,title,desc,mainCode,nodeId,points,dueISO}
+
+    goals: [],     // global goals
+    trophies: [],  // trophyroom items per mainskill
+
+    investments: [],
+    purchased: [],
+
+    notes: {},     // { [key]: { title, text, updatedAt, route } }
+
+    ui: {
+      activeTab: "MAINSKILLS",
+      view: "LIST",
+      selectedMain: "SOC",
+      selectedNode: null,
+      skillSubView: "TREE",
+      mapFilter: "",
+    },
+  };
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return defaultState();
+    const st = JSON.parse(raw);
+
+    st.profile ||= { username:"Player", note:"" };
+    st.skills ||= {};
+    st.subskills ||= {};
+    st.missions ||= [];
+    st.habits ||= [];
+    st.goals ||= [];
+    st.trophies ||= [];
+    st.investments ||= [];
+    st.purchased ||= [];
+    st.notes ||= {};
+    st.ui ||= { activeTab:"MAINSKILLS", view:"LIST", selectedMain:"SOC", selectedNode:null, skillSubView:"TREE", mapFilter:"" };
+
+    for (const m of MAINSKILLS){
+      st.skills[m.code] ||= { totalXp: 0 };
+      const base = DEFAULT_SUBSKILLS_BY_MAIN[m.code] || [];
+      for (const s of base){
+        const id = `${m.code}__${s}`;
+        st.subskills[id] ||= { id, mainCode:m.code, name:s, parentId:null, totalXp: 0 };
+      }
+    }
+
+    for (const [id, node] of Object.entries(st.subskills)){
+      node.id ||= id;
+      node.totalXp = Number(node.totalXp)||0;
+      node.parentId = node.parentId ?? null;
+    }
+    for (const m of MAINSKILLS){
+      st.skills[m.code].totalXp = Number(st.skills[m.code].totalXp)||0;
+    }
+    for (const ms of st.missions){
+      ms.points = Number(ms.points)||0;
+      ms.maxReps = (ms.maxReps==null ? null : Number(ms.maxReps)||null);
+    }
+    for (const hb of st.habits){
+      hb.points = Number(hb.points)||0;
+    }
+
+    return st;
+  }catch{
+    return defaultState();
+  }
+}
+
+let state = loadState();
+function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+/* =========================
+   TREE HELPERS
+========================= */
+function nodesForMain(mainCode){
+  return Object.values(state.subskills).filter(n=>n.mainCode===mainCode);
+}
+function nodeById(id){ return id ? state.subskills[id] : null; }
+
+function ensureSubskill(mainCode, name, parentId){
+  const trimmed = (name||"").trim();
+  if (!trimmed) return null;
+  const id = `${mainCode}__${trimmed}`;
+  if (!state.subskills[id]){
+    state.subskills[id] = { id, mainCode, name: trimmed, parentId: parentId ?? null, totalXp: 0 };
+  } else {
+    if (state.subskills[id].parentId == null && parentId != null){
+      state.subskills[id].parentId = parentId;
+    }
+  }
+  saveState();
+  return id;
+}
+
+/* =========================
+   XP FLOW (TREE)
+========================= */
+function addXpFlow(mainCode, nodeId, delta){
+  delta = Number(delta)||0;
+  if (!delta) return;
+
+  state.skills[mainCode] ||= { totalXp: 0 };
+  state.skills[mainCode].totalXp = Math.max(0, (state.skills[mainCode].totalXp||0) + delta);
+
+  let curId = nodeId;
+  while (curId){
+    const n = state.subskills[curId];
+    if (!n) break;
+    n.totalXp = Math.max(0, (n.totalXp||0) + delta);
+    curId = n.parentId;
+  }
+
+  saveState();
+}
+
+/* =========================
+   PLAYER LEVEL (COMBAT LEVEL)
+========================= */
+function totalMainskillLevelUps(){
+  let ups = 0;
+  for (const m of MAINSKILLS){
+    const xp = state.skills[m.code]?.totalXp || 0;
+    const lvl = levelFromTotalXp(xp);
+    ups += Math.max(0, lvl - 1);
+  }
+  return ups;
+}
+function playerCombatLevel(){
+  const ups = totalMainskillLevelUps();
+  const lvl = 1 + Math.floor(ups / 11.76);
+  return clamp(lvl, 1, 126);
+}
+
+/* =========================
+   NOTES SYSTEM
+========================= */
+function currentPageNoteMeta(){
+  // One note per "page"
+  const t = state.ui.activeTab;
+
+  if (t === "MAINSKILLS" && state.ui.view === "DETAIL"){
+    const code = state.ui.selectedMain || "SOC";
+    return {
+      key: `SKILL:${code}`,
+      title: `${code} — ${mainskillName(code)} (Main Skill Page)`,
+      route: { activeTab:"MAINSKILLS", view:"DETAIL", selectedMain:code, skillSubView: state.ui.skillSubView || "TREE" }
+    };
+  }
+
+  if (t === "MAINSKILLS" && state.ui.view !== "DETAIL"){
+    return { key:"TAB:MAINSKILLS", title:"MAINSKILLS (List)", route:{ activeTab:"MAINSKILLS", view:"LIST" } };
+  }
+
+  if (t === "PROFILE") return { key:"TAB:PROFILE", title:"PROFILE", route:{ activeTab:"PROFILE" } };
+  if (t === "SKILLSMAP") return { key:"TAB:SKILLSMAP", title:"SKILLSMAP", route:{ activeTab:"SKILLSMAP" } };
+  if (t === "MISSIONS") return { key:"TAB:MISSIONS", title:"MISSIONS", route:{ activeTab:"MISSIONS" } };
+  if (t === "HABITS") return { key:"TAB:HABITS", title:"HABITS", route:{ activeTab:"HABITS" } };
+  if (t === "GOALS") return { key:"TAB:GOALS", title:"GOALS", route:{ activeTab:"GOALS" } };
+  if (t === "INVESTMENTS") return { key:"TAB:INVESTMENTS", title:"INVESTMENTS", route:{ activeTab:"INVESTMENTS" } };
+  if (t === "NOTES") return { key:"TAB:NOTES", title:"NOTES", route:{ activeTab:"NOTES" } };
+
+  return { key:`TAB:${t}`, title:t, route:{ activeTab:t } };
+}
+
+function openNotesModalFor(meta){
+  const existing = state.notes[meta.key]?.text || "";
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="chip">Page: <b>${escapeHtml(meta.title)}</b></div>
+      <div class="field">
+        <label class="muted">Notes</label>
+        <textarea id="noteText" placeholder="Write strategic notes for this page..."></textarea>
+      </div>
+      <div class="row wrap">
+        <button class="btn ok" id="save">Save</button>
+        <button class="btn" id="cancel">Cancel</button>
+        <button class="btn bad" id="del">Delete note</button>
+      </div>
+      <div class="hint">Notes are stored locally on this device (export to back up).</div>
+    </div>
+  `);
+
+  body.querySelector("#noteText").value = existing;
+
+  body.querySelector("#cancel").onclick = closeModal;
+  body.querySelector("#save").onclick = ()=>{
+    const txt = body.querySelector("#noteText").value || "";
+    state.notes[meta.key] = {
+      title: meta.title,
+      text: txt,
+      updatedAt: new Date().toISOString(),
+      route: meta.route
+    };
+    saveState();
+    closeModal();
+    render();
+  };
+  body.querySelector("#del").onclick = ()=>{
+    if (!state.notes[meta.key]) return closeModal();
+    if (!confirm("Delete this note?")) return;
+    delete state.notes[meta.key];
+    saveState();
+    closeModal();
+    render();
+  };
+
+  openModal("Notes", body);
+}
+
+function openNotesForCurrentPage(){
+  openNotesModalFor(currentPageNoteMeta());
+}
+
+function setRoute(route){
+  // merge route values carefully
+  if (route.activeTab) state.ui.activeTab = route.activeTab;
+  if ("view" in route) state.ui.view = route.view;
+  if ("selectedMain" in route) state.ui.selectedMain = route.selectedMain;
+  if ("selectedNode" in route) state.ui.selectedNode = route.selectedNode ?? null;
+  if ("skillSubView" in route) state.ui.skillSubView = route.skillSubView || "TREE";
+  saveState();
+  render();
+}
+
+/* =========================
+   TABS
+========================= */
+const TABS = [
+  { id:"PROFILE", label:"PROFILE" },
+  { id:"MAINSKILLS", label:"MAINSKILLS" },
+  { id:"SKILLSMAP", label:"SKILLSMAP" },
+  { id:"MISSIONS", label:"MISSIONS" },
+  { id:"HABITS", label:"HABITS" },
+  { id:"GOALS", label:"GOALS" },
+  { id:"INVESTMENTS", label:"INVESTMENTS"},
+  { id:"NOTES", label:"NOTES"},
+];
+
+function setTab(id){
+  state.ui.activeTab = id;
+  saveState();
+  render();
+}
+
+const tabsEl = document.getElementById("tabs");
+const mainEl = document.getElementById("main");
+
+function renderTabs(){
+  tabsEl.innerHTML = "";
+  for (const t of TABS){
+    const b = document.createElement("button");
+    b.className = "tab" + (state.ui.activeTab===t.id ? " active" : "");
+    b.textContent = t.label;
+    b.onclick = ()=> setTab(t.id);
+    tabsEl.appendChild(b);
+  }
+}
+
+/* =========================
+   MODAL
+========================= */
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalTitleEl = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+document.getElementById("modalClose").onclick = closeModal;
+modalBackdrop.addEventListener("click", (e)=>{ if (e.target===modalBackdrop) closeModal(); });
+
+function openModal(title, bodyNode){
+  modalTitleEl.textContent = title;
+  modalBody.innerHTML = "";
+  modalBody.appendChild(bodyNode);
+  modalBackdrop.classList.add("show");
+}
+function closeModal(){ modalBackdrop.classList.remove("show"); }
+
+/* =========================
+   TROPHYROOM
+========================= */
+function addToTrophyRoom({mainCode, title, desc, kind}){
+  state.trophies.unshift({
+    id: cryptoId(),
+    mainCode,
+    kind, // "mission" | "habit" | "goal"
+    title,
+    desc: desc || "",
+    createdAt: new Date().toISOString(),
+  });
+  saveState();
+}
+
+/* =========================
+   MISSIONS/HABITS COMPLETION (AUTO-TROPHY ON MAX REPS)
+========================= */
+function finishMission(m){
+  m.points = (m.points||0) + 1;
+  addXpFlow(m.mainCode, m.nodeId, +1);
+
+  if (m.maxReps != null && m.points >= m.maxReps){
+    addToTrophyRoom({ mainCode: m.mainCode, title: m.title, desc: m.desc, kind: "mission" });
+    state.missions = state.missions.filter(x=>x.id !== m.id);
+  }
+  saveState();
+}
+function undoMission(m){
+  if ((m.points||0) <= 0) return;
+  m.points = (m.points||0) - 1;
+  addXpFlow(m.mainCode, m.nodeId, -1);
+  saveState();
+}
+function finishHabit(h){
+  h.points = (h.points||0) + 1;
+  addXpFlow(h.mainCode, h.nodeId, +1);
+  saveState();
+}
+function undoHabit(h){
+  if ((h.points||0) <= 0) return;
+  h.points = (h.points||0) - 1;
+  addXpFlow(h.mainCode, h.nodeId, -1);
+  saveState();
+}
+
+/* =========================
+   FORMS
+========================= */
+function createMissionHabitFormHtml(){
+  return `
+    <div class="card" style="padding:10px;background:transparent;border:1px dashed var(--line)">
+      <div class="row wrap">
+        <button class="btn small primary" data-kind="mission" type="button">Mission</button>
+        <button class="btn small primary" data-kind="habit" type="button">Habit</button>
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <label class="muted">Target</label>
+        <div class="chip" data-targetpill>—</div>
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <label class="muted">Title</label>
+        <input data-title placeholder="e.g. Talk with mom" />
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <label class="muted">Description (optional)</label>
+        <textarea data-desc placeholder="extra details..."></textarea>
+      </div>
+
+      <div class="field" style="margin-top:10px" data-repswrap>
+        <label class="muted">Mission max reps (optional)</label>
+        <input data-maxreps type="number" min="1" step="1" placeholder="leave blank = infinite" />
+      </div>
+
+      <div class="field" style="margin-top:10px" data-duewrap>
+        <label class="muted">Habit deadline (optional)</label>
+        <input data-due type="date" />
+      </div>
+
+      <div class="row wrap" style="margin-top:10px">
+        <button class="btn ok" data-create type="button">Add</button>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Finish gives <span class="oktxt">+1 XP</span> and flows up the connected lines.
+      </div>
+    </div>
+  `;
+}
+
+function bindMissionHabitForm(container, getTarget){
+  const kindBtns = container.querySelectorAll("[data-kind]");
+  const targetPill = container.querySelector("[data-targetpill]");
+  const titleEl = container.querySelector("[data-title]");
+  const descEl = container.querySelector("[data-desc]");
+  const repsWrap = container.querySelector("[data-repswrap]");
+  const repsEl = container.querySelector("[data-maxreps]");
+  const dueWrap = container.querySelector("[data-duewrap]");
+  const dueEl = container.querySelector("[data-due]");
+  const createBtn = container.querySelector("[data-create]");
+  if (!createBtn || !targetPill) return;
+
+  let kind = "mission";
+
+  function refreshTarget(){
+    const { mainCode, nodeId } = getTarget();
+    const mainLabel = `${mainCode} — ${mainskillName(mainCode)}`;
+    const node = nodeById(nodeId);
+    targetPill.textContent = node ? `${mainLabel} / ${node.name}` : `${mainLabel} / (main)`;
+  }
+  refreshTarget();
+
+  function setKind(k){
+    kind = k;
+    for (const b of kindBtns){
+      b.classList.toggle("primary", b.dataset.kind===k);
+      b.classList.toggle("ghost", b.dataset.kind!==k);
+    }
+    if (dueWrap) dueWrap.style.display = (k==="habit") ? "" : "none";
+    if (repsWrap) repsWrap.style.display = (k==="mission") ? "" : "none";
+  }
+  for (const b of kindBtns) b.onclick = ()=> setKind(b.dataset.kind);
+  setKind(kind);
+
+  createBtn.onclick = ()=>{
+    const { mainCode, nodeId } = getTarget();
+    const title = (titleEl?.value || "").trim();
+    const desc = (descEl?.value || "").trim();
+    if (!title) return alert("Title required.");
+
+    if (kind==="mission"){
+      const maxRepsRaw = repsEl?.value ? Number(repsEl.value) : null;
+      const maxReps = (maxRepsRaw && isFinite(maxRepsRaw) && maxRepsRaw > 0) ? Math.floor(maxRepsRaw) : null;
+
+      state.missions.unshift({
+        id: cryptoId(),
+        title, desc,
+        mainCode,
+        nodeId: nodeId || null,
+        points: 0,
+        maxReps,
+        createdAt: new Date().toISOString(),
+      });
+    } else {
+      const dueISO = dueEl?.value ? new Date(dueEl.value + "T00:00:00").toISOString() : "";
+      state.habits.unshift({
+        id: cryptoId(),
+        title, desc,
+        mainCode,
+        nodeId: nodeId || null,
+        dueISO,
+        points: 0,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    if (titleEl) titleEl.value = "";
+    if (descEl) descEl.value = "";
+    if (dueEl) dueEl.value = "";
+    if (repsEl) repsEl.value = "";
+
+    saveState();
+    render();
+  };
+}
+
+/* =========================
+   QUICK ADD MODAL (FROM NODE + MENU)
+========================= */
+function openQuickAddModal(kind, mainCode, nodeId){
+  const node = nodeById(nodeId);
+  const targetText = `${mainCode} — ${mainskillName(mainCode)} / ${node ? node.name : "(main)"}`;
+
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="chip">Target: <b>${escapeHtml(targetText)}</b></div>
+
+      <div class="field">
+        <label class="muted">${kind==="mission" ? "Mission title" : "Habit title"}</label>
+        <input id="t" placeholder="e.g. Talk with mom" />
+      </div>
+
+      <div class="field">
+        <label class="muted">Description (optional)</label>
+        <textarea id="d"></textarea>
+      </div>
+
+      ${kind==="habit" ? `
+        <div class="field">
+          <label class="muted">Deadline (optional)</label>
+          <input id="due" type="date" />
+        </div>
+      ` : `
+        <div class="field">
+          <label class="muted">Max reps (optional)</label>
+          <input id="mr" type="number" min="1" step="1" placeholder="blank = infinite" />
+        </div>
+      `}
+
+      <div class="row wrap">
+        <button class="btn ok" id="add">Add</button>
+        <button class="btn" id="cancel">Cancel</button>
+      </div>
+    </div>
+  `);
+
+  body.querySelector("#cancel").onclick = closeModal;
+  body.querySelector("#add").onclick = ()=>{
+    const title = body.querySelector("#t").value.trim();
+    const desc = body.querySelector("#d").value.trim();
+    if (!title) return alert("Title required.");
+
+    if (kind === "mission"){
+      const mrRaw = body.querySelector("#mr")?.value ? Number(body.querySelector("#mr").value) : null;
+      const maxReps = (mrRaw && isFinite(mrRaw) && mrRaw > 0) ? Math.floor(mrRaw) : null;
+
+      state.missions.unshift({
+        id: cryptoId(),
+        title, desc,
+        mainCode,
+        nodeId: nodeId || null,
+        points: 0,
+        maxReps,
+        createdAt: new Date().toISOString(),
+      });
+    } else {
+      const dueVal = body.querySelector("#due")?.value || "";
+      state.habits.unshift({
+        id: cryptoId(),
+        title, desc,
+        mainCode,
+        nodeId: nodeId || null,
+        dueISO: dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "",
+        points: 0,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    saveState();
+    closeModal();
+    render();
+  };
+
+  openModal(kind==="mission" ? "Add Mission" : "Add Habit", body);
+}
+
+/* GOAL MODAL */
+function openAddGoalModal(mainCode, nodeId){
+  const node = nodeById(nodeId);
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="chip">Goal target: <b>${mainCode}</b> / ${escapeHtml(node ? node.name : "(main)")}</div>
+      <div class="field">
+        <label class="muted">Goal title</label>
+        <input id="gTitle" placeholder="e.g. Run 10K under 50 min" />
+      </div>
+      <div class="field">
+        <label class="muted">Description (optional)</label>
+        <textarea id="gDesc"></textarea>
+      </div>
+      <div class="field">
+        <label class="muted">Deadline (optional)</label>
+        <input id="gDue" type="date" />
+      </div>
+      <div class="row wrap">
+        <button class="btn ok" id="save">Add Goal</button>
+        <button class="btn" id="cancel">Cancel</button>
+      </div>
+      <div class="hint">Goals automatically appear in the global GOALS tab.</div>
+    </div>
+  `);
+
+  body.querySelector("#cancel").onclick = closeModal;
+  body.querySelector("#save").onclick = ()=>{
+    const title = body.querySelector("#gTitle").value.trim();
+    const desc = body.querySelector("#gDesc").value.trim();
+    const dueVal = body.querySelector("#gDue").value;
+    if (!title) return alert("Goal title required.");
+
+    state.goals.unshift({
+      id: cryptoId(),
+      title, desc,
+      mainCode,
+      nodeId: nodeId || null,
+      dueISO: dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "",
+      done: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    saveState();
+    closeModal();
+    render();
+  };
+
+  openModal("Add Goal", body);
+}
+
+/* INVESTMENT MODAL */
+function openAddInvestmentModal(){
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="field">
+        <label class="muted">Item</label>
+        <input id="iTitle" placeholder="e.g. Barbell" />
+      </div>
+      <div class="field">
+        <label class="muted">Cost (number)</label>
+        <input id="iCost" type="number" step="1" placeholder="e.g. 599" />
+      </div>
+      <div class="field">
+        <label class="muted">Currency</label>
+        <input id="iCur" placeholder="e.g. kr" value="kr" />
+      </div>
+      <div class="field">
+        <label class="muted">Tag mainskill (optional)</label>
+        <select id="iTag">
+          <option value="">(none)</option>
+          ${MAINSKILLS.map(m=>`<option value="${m.code}">${m.code} — ${escapeHtml(m.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="row wrap">
+        <button class="btn ok" id="save">Add</button>
+        <button class="btn" id="cancel">Cancel</button>
+      </div>
+    </div>
+  `);
+
+  body.querySelector("#cancel").onclick = closeModal;
+  body.querySelector("#save").onclick = ()=>{
+    const title = body.querySelector("#iTitle").value.trim();
+    const cost = Number(body.querySelector("#iCost").value || 0);
+    const cur = body.querySelector("#iCur").value.trim() || "kr";
+    const tag = body.querySelector("#iTag").value || "";
+    if (!title) return alert("Item name required.");
+
+    state.investments.unshift({
+      id: cryptoId(),
+      title,
+      cost: Math.max(0, Math.floor(cost)),
+      currency: cur,
+      tagMain: tag,
+      createdAt: new Date().toISOString(),
+    });
+
+    saveState();
+    closeModal();
+    render();
+  };
+
+  openModal("Add Investment", body);
+}
+
+/* =========================
+   TREE LAYOUT + GRAPH RENDER
+========================= */
+function computeTreeLayout(mainCode){
+  const all = nodesForMain(mainCode);
+  const rootId = "__ROOT__";
+  const kids = new Map();
+
+  for (const n of all){
+    const p = n.parentId ?? rootId;
+    if (!kids.has(p)) kids.set(p, []);
+    kids.get(p).push(n.id);
+  }
+  for (const [p, arr] of kids.entries()){
+    arr.sort((a,b)=> (nodeById(a)?.name||"").localeCompare(nodeById(b)?.name||""));
+  }
+
+  const pos = new Map();
+  let nextX = 0;
+
+  const X_SPACING = 260;
+  const Y_SPACING = 200;
+  const X0 = 40;
+  const Y0 = 40;
+
+  function dfs(id, depth){
+    const children = kids.get(id) || [];
+    if (children.length === 0){
+      const x = nextX;
+      nextX += 1;
+      pos.set(id, { x, y: depth });
+      return x;
+    }
+    const childXs = children.map(ch => dfs(ch, depth+1));
+    const avg = childXs.reduce((a,b)=>a+b,0) / childXs.length;
+    pos.set(id, { x: avg, y: depth });
+    return avg;
+  }
+
+  dfs(rootId, 0);
+
+  const px = {};
+  for (const [id, p] of pos.entries()){
+    px[id] = { left: X0 + p.x*X_SPACING, top: Y0 + p.y*Y_SPACING };
+  }
+
+  const maxX = Math.max(0, ...Object.values(px).map(v=>v.left));
+  const maxY = Math.max(0, ...Object.values(px).map(v=>v.top));
+  const stageW = Math.max(1100, maxX + 360);
+  const stageH = Math.max(760, maxY + 340);
+
+  const edges = [];
+  for (const [p, arr] of kids.entries()){
+    for (const ch of arr) edges.push([p, ch]);
+  }
+
+  return { px, edges, stageW, stageH, rootId };
+}
+
+function miniMissionHtml(m){
+  const reps = m.maxReps == null ? `${m.points||0} / ∞` : `${m.points||0} / ${m.maxReps}`;
+  return `
+    <div class="miniBox blue" data-mid="${m.id}">
+      <div class="miniTitle">${escapeHtml(m.title)}</div>
+      <div class="miniRow">
+        <span class="chip">Reps ${escapeHtml(reps)}</span>
+        <button class="btn small ok" data-act="m-finish">Finish</button>
+        <button class="btn small" data-act="m-undo">Undo</button>
+        <button class="btn small ok" data-act="m-trophy">🏆</button>
+        <button class="btn small bad" data-act="m-del">Del</button>
+      </div>
+    </div>
+  `;
+}
+function miniHabitHtml(h){
+  const due = h.dueISO ? new Date(h.dueISO).toLocaleDateString() : "";
+  return `
+    <div class="miniBox green" data-hid="${h.id}">
+      <div class="miniTitle">${escapeHtml(h.title)}</div>
+      <div class="miniRow">
+        <span class="chip">Done ${h.points||0}</span>
+        ${due ? `<span class="chip">Due ${escapeHtml(due)}</span>` : ``}
+        <button class="btn small ok" data-act="h-finish">Finish</button>
+        <button class="btn small" data-act="h-undo">Undo</button>
+        <button class="btn small ok" data-act="h-trophy">🏆</button>
+        <button class="btn small bad" data-act="h-del">Del</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindMiniActions(nodeEl){
+  nodeEl.querySelectorAll('[data-mid]').forEach(box=>{
+    const id = box.getAttribute("data-mid");
+    const m = state.missions.find(x=>x.id===id);
+    if (!m) return;
+    box.querySelectorAll("[data-act]").forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        const act = btn.getAttribute("data-act");
+        if (act==="m-finish"){ finishMission(m); render(); }
+        else if (act==="m-undo"){ undoMission(m); render(); }
+        else if (act==="m-trophy"){
+          addToTrophyRoom({ mainCode:m.mainCode, title:m.title, desc:m.desc, kind:"mission" });
+          state.missions = state.missions.filter(x=>x.id!==m.id);
+          saveState(); render();
+        } else if (act==="m-del"){
+          if (!confirm(`Delete mission "${m.title}"?`)) return;
+          state.missions = state.missions.filter(x=>x.id!==m.id);
+          saveState(); render();
+        }
+      };
+    });
+  });
+
+  nodeEl.querySelectorAll('[data-hid]').forEach(box=>{
+    const id = box.getAttribute("data-hid");
+    const h = state.habits.find(x=>x.id===id);
+    if (!h) return;
+    box.querySelectorAll("[data-act]").forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        const act = btn.getAttribute("data-act");
+        if (act==="h-finish"){ finishHabit(h); render(); }
+        else if (act==="h-undo"){ undoHabit(h); render(); }
+        else if (act==="h-trophy"){
+          addToTrophyRoom({ mainCode:h.mainCode, title:h.title, desc:h.desc, kind:"habit" });
+          state.habits = state.habits.filter(x=>x.id!==h.id);
+          saveState(); render();
+        } else if (act==="h-del"){
+          if (!confirm(`Delete habit "${h.title}"?`)) return;
+          state.habits = state.habits.filter(x=>x.id!==h.id);
+          saveState(); render();
+        }
+      };
+    });
+  });
+}
+
+function renderMainTreeGraph(mainCode, mountEl){
+  const layout = computeTreeLayout(mainCode);
+
+  const wrap = el(`<div class="graphWrap"><div class="graphStage"></div></div>`);
+  const stage = wrap.querySelector(".graphStage");
+  stage.style.width = layout.stageW + "px";
+  stage.style.height = layout.stageH + "px";
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","graphLines");
+  stage.appendChild(svg);
+
+  const nodeEls = new Map();
+
+  const mainXp = state.skills[mainCode]?.totalXp || 0;
+  const mp = xpProgress(mainXp);
+  const rootPos = layout.px[layout.rootId] || { left: 420, top: 40 };
+
+  const rootNode = el(`
+    <div class="node" style="left:${rootPos.left}px;top:${rootPos.top}px;width:320px">
+      <div class="nodeBtns">
+        <button class="nodeBtn primary" title="Select main">✓</button>
+        <button class="nodeBtn ok" title="Add top-level subskill">＋</button>
+      </div>
+      <div class="nodeTitle">${mainCode} — ${escapeHtml(mainskillName(mainCode))}</div>
+      <div class="nodeMeta">
+        <span class="chip">Lv ${mp.lvl}</span>
+        <span class="chip">XP ${mainXp}</span>
+      </div>
+      <div class="miniStack" style="margin-top:10px">
+        <div class="hint">Tap a node to select it. Tap ＋ on a node to add child subskills / missions / habits / goals.</div>
+      </div>
+    </div>
+  `);
+
+  const [rootSel, rootPlus] = rootNode.querySelectorAll("button");
+  rootSel.onclick = (e)=>{
+    e.stopPropagation();
+    state.ui.selectedMain = mainCode;
+    state.ui.selectedNode = null;
+    saveState();
+    render();
+  };
+  rootPlus.onclick = (e)=>{
+    e.stopPropagation();
+    openAddSubskillModal(mainCode, null);
+  };
+  rootNode.onclick = ()=>{
+    state.ui.selectedMain = mainCode;
+    state.ui.selectedNode = null;
+    saveState(); render();
+  };
+
+  stage.appendChild(rootNode);
+  nodeEls.set(layout.rootId, rootNode);
+
+  const all = nodesForMain(mainCode);
+  for (const n of all){
+    const xp = n.totalXp || 0;
+    const p = xpProgress(xp);
+    const pos = layout.px[n.id] || { left: 40, top: 220 };
+
+    const ms = state.missions.filter(m => m.mainCode===mainCode && m.nodeId===n.id);
+    const hs = state.habits.filter(h => h.mainCode===mainCode && h.nodeId===n.id);
+
+    const node = el(`
+      <div class="node" style="left:${pos.left}px;top:${pos.top}px">
+        <div class="nodeBtns">
+          <button class="nodeBtn primary" title="Select">✓</button>
+          <button class="nodeBtn ok" title="Add child subskill / mission / habit / goal">＋</button>
+        </div>
+        <div class="nodeTitle">${escapeHtml(n.name)}</div>
+        <div class="nodeMeta">
+          <span class="chip">Lv ${p.lvl}</span>
+          <span class="chip">XP ${xp}</span>
+        </div>
+
+        <div class="miniStack">
+          ${ms.slice(0,3).map(miniMissionHtml).join("")}
+          ${hs.slice(0,3).map(miniHabitHtml).join("")}
+          ${(ms.length>3 || hs.length>3) ? `<div class="hint">More items… (see Missions/Habits tabs)</div>` : ``}
+        </div>
+      </div>
+    `);
+
+    const [selBtn, plusBtn] = node.querySelectorAll("button");
+    selBtn.onclick = (e)=>{
+      e.stopPropagation();
+      state.ui.selectedMain = mainCode;
+      state.ui.selectedNode = n.id;
+      saveState(); render();
+    };
+    plusBtn.onclick = (e)=>{
+      e.stopPropagation();
+      state.ui.selectedMain = mainCode;
+      state.ui.selectedNode = n.id;
+      saveState();
+      openNodePlusMenu(mainCode, n.id);
+    };
+    node.onclick = ()=>{
+      state.ui.selectedMain = mainCode;
+      state.ui.selectedNode = n.id;
+      saveState(); render();
+    };
+
+    bindMiniActions(node);
+
+    stage.appendChild(node);
+    nodeEls.set(n.id, node);
+  }
+
+  function drawLines(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.setAttribute("width", layout.stageW);
+    svg.setAttribute("height", layout.stageH);
+    svg.setAttribute("viewBox", `0 0 ${layout.stageW} ${layout.stageH}`);
+
+    for (const [fromId, toId] of layout.edges){
+      const fromEl = nodeEls.get(fromId);
+      const toEl = nodeEls.get(toId);
+      if (!fromEl || !toEl) continue;
+
+      const x1 = fromEl.offsetLeft + fromEl.offsetWidth / 2;
+      const y1 = fromEl.offsetTop + fromEl.offsetHeight;
+      const x2 = toEl.offsetLeft + toEl.offsetWidth / 2;
+      const y2 = toEl.offsetTop;
+
+      const midY = (y1 + y2) / 2;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY} ${x2} ${midY} ${x2} ${y2}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "rgba(102,163,255,.85)");
+      path.setAttribute("stroke-width", "4");
+      path.setAttribute("stroke-linecap", "round");
+      svg.appendChild(path);
+    }
+  }
+
+  drawLines();
+  wrap.addEventListener("scroll", ()=>drawLines(), {passive:true});
+  window.addEventListener("resize", ()=>drawLines(), {passive:true});
+
+  mountEl.innerHTML = "";
+  mountEl.appendChild(wrap);
+}
+
+/* =========================
+   NODE + MENU
+========================= */
+function openNodePlusMenu(mainCode, nodeId){
+  const node = nodeById(nodeId);
+  const title = node ? node.name : "(main)";
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="chip">Target: <b>${mainCode}</b> / ${escapeHtml(title)}</div>
+      <div class="grid cols2">
+        <button class="btn ok" id="addChild">+ Subskill (child)</button>
+        <button class="btn ok" id="addGoal">+ Goal</button>
+      </div>
+      <div class="grid cols2">
+        <button class="btn ok" id="addMission">+ Mission</button>
+        <button class="btn ok" id="addHabit">+ Habit</button>
+      </div>
+      <div class="hint">Missions show under the node as blue boxes. Habits show as green boxes.</div>
+    </div>
+  `);
+
+  body.querySelector("#addChild").onclick = ()=>{
+    closeModal();
+    openAddSubskillModal(mainCode, nodeId);
+  };
+  body.querySelector("#addGoal").onclick = ()=>{
+    closeModal();
+    openAddGoalModal(mainCode, nodeId);
+  };
+  body.querySelector("#addMission").onclick = ()=>{
+    closeModal();
+    openQuickAddModal("mission", mainCode, nodeId);
+  };
+  body.querySelector("#addHabit").onclick = ()=>{
+    closeModal();
+    openQuickAddModal("habit", mainCode, nodeId);
+  };
+
+  openModal("Add New", body);
+}
+
+function openAddSubskillModal(mainCode, parentId){
+  const parentName = parentId ? (nodeById(parentId)?.name || "(unknown)") : "(main)";
+  const body = el(`
+    <div class="grid" style="gap:10px">
+      <div class="chip">Add subskill under <b>${mainCode} — ${escapeHtml(mainskillName(mainCode))}</b> / ${escapeHtml(parentName)}</div>
+      <div class="field">
+        <label class="muted">Subskill name</label>
+        <input id="name" placeholder="e.g. Public Speaking" />
+      </div>
+      <div class="row wrap">
+        <button class="btn ok" id="create">Create</button>
+        <button class="btn" id="cancel">Cancel</button>
+      </div>
+      <div class="hint">New subskill starts at Level 1 (XP 0) and connects to its parent.</div>
+    </div>
+  `);
+
+  body.querySelector("#cancel").onclick = closeModal;
+  body.querySelector("#create").onclick = ()=>{
+    const name = body.querySelector("#name").value.trim();
+    if (!name) return alert("Name required.");
+    const id = ensureSubskill(mainCode, name, parentId ?? null);
+    state.ui.selectedMain = mainCode;
+    state.ui.selectedNode = id;
+    saveState();
+    closeModal();
+    render();
+  };
+
+  openModal("New Subskill", body);
+}
+
+/* =========================
+   PAGE NOTE BUTTON (helper)
+========================= */
+function pageHeaderWithNotes({kicker, title, subtitle}){
+  const meta = currentPageNoteMeta();
+  const has = !!(state.notes[meta.key]?.text || "").trim();
+  const btnLabel = has ? "Notes ✓" : "Notes";
+  return el(`
+    <div class="card">
+      <div class="row sp wrap">
+        <div>
+          <div class="kicker">${escapeHtml(kicker || "")}</div>
+          <h2 style="margin-top:6px">${escapeHtml(title || "")}</h2>
+          ${subtitle ? `<div class="muted">${escapeHtml(subtitle)}</div>` : ``}
+        </div>
+        <div class="row wrap">
+          <button class="btn primary" data-notes>${btnLabel}</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+/* =========================
+   SCREENS
+========================= */
+function screenProfile(){
+  const combat = playerCombatLevel();
+  const ups = totalMainskillLevelUps();
+
+  const c = el(`<div class="grid cols2"></div>`);
+
+  const card1 = el(`
+    <div class="card">
+      <div class="row sp wrap">
+        <div>
+          <div class="kicker">Profile</div>
+          <h2 style="margin-top:6px">${escapeHtml(state.profile.username || "Player")}</h2>
+          <div class="row wrap" style="margin-top:8px">
+            <span class="chip">Combat Level (CB): <b>${combat}</b> / 126</span>
+            <span class="chip">Total mainskill level-ups: <b>${ups}</b></span>
+            <span class="chip">Rate: <b>1 CB</b> per <b>11.76</b> mainskill level-ups</span>
+          </div>
+        </div>
+        <button class="btn primary" id="notesPage">Notes</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="field">
+        <label class="muted">Username</label>
+        <input id="username" />
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label class="muted">Notes</label>
+        <textarea id="note"></textarea>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="saveProfile">Save</button>
+      </div>
+      <div class="hint" style="margin-top:10px">Data is stored locally on this device unless you export it.</div>
+    </div>
+  `);
+
+  const card2 = el(`
+    <div class="card">
+      <div class="kicker">Overview</div>
+      <h2 style="margin-top:6px">All mainskills</h2>
+      <div class="hr"></div>
+      <div class="list" id="overviewList"></div>
+    </div>
+  `);
+
+  c.appendChild(card1);
+  c.appendChild(card2);
+
+  card1.querySelector("#notesPage").onclick = openNotesForCurrentPage;
+
+  card1.querySelector("#username").value = state.profile.username || "Player";
+  card1.querySelector("#note").value = state.profile.note || "";
+  card1.querySelector("#saveProfile").onclick = ()=>{
+    state.profile.username = card1.querySelector("#username").value.trim() || "Player";
+    state.profile.note = card1.querySelector("#note").value || "";
+    saveState();
+    render();
+  };
+
+  const list = card2.querySelector("#overviewList");
+  list.innerHTML = "";
+  for (const m of MAINSKILLS){
+    const xp = state.skills[m.code]?.totalXp || 0;
+    const p = xpProgress(xp);
+    list.appendChild(el(`
+      <div class="item">
+        <div class="row sp">
+          <div>
+            <div class="title">${m.code} — ${escapeHtml(m.name)}</div>
+            <div class="muted">Level ${p.lvl} • Total XP ${xp}</div>
+          </div>
+          <span class="chip">Next: ${p.nextNeed ?? "MAX"}</span>
+        </div>
+        <div class="xpbar" style="margin-top:10px"><div style="width:${Math.round(p.pct*100)}%"></div></div>
+      </div>
+    `));
+  }
+  return c;
+}
+
+/* MAINSKILLS */
+function screenMainSkills(){
+  if (state.ui.view === "DETAIL") return screenMainSkillDetail(state.ui.selectedMain);
+  return screenMainSkillsList();
+}
+
+function screenMainSkillsList(){
+  const top = pageHeaderWithNotes({
+    kicker:"Main skills",
+    title:"Tap a mainskill to open its page",
+    subtitle:"Each mainskill has: Tree + Goals + Trophy Room."
+  });
+
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <h3>All mainskills</h3>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const list = root.querySelector("#list");
+  list.innerHTML = "";
+
+  for (const m of MAINSKILLS){
+    const xp = state.skills[m.code]?.totalXp || 0;
+    const p = xpProgress(xp);
+    const count = nodesForMain(m.code).length;
+    const goalsCount = state.goals.filter(g=>g.mainCode===m.code && !g.done).length;
+    const trophyCount = state.trophies.filter(t=>t.mainCode===m.code).length;
+
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${m.code} — ${escapeHtml(m.name)}</div>
+            <div class="meta">
+              <span class="chip">Lv ${p.lvl}</span>
+              <span class="chip">XP ${xp}</span>
+              <span class="chip">${count} subskills</span>
+              <span class="chip">${goalsCount} goals</span>
+              <span class="chip">${trophyCount} trophies</span>
+            </div>
+          </div>
+          <div class="row wrap">
+            <button class="btn primary">Open</button>
+          </div>
+        </div>
+      </div>
+    `);
+    it.querySelector("button").onclick = ()=>{
+      state.ui.selectedMain = m.code;
+      state.ui.selectedNode = null;
+      state.ui.view = "DETAIL";
+      state.ui.skillSubView = "TREE";
+      saveState();
+      render();
+    };
+    list.appendChild(it);
+  }
+
+  return root;
+}
+
+function screenMainSkillDetail(mainCode){
+  const m = MAINSKILLS.find(x=>x.code===mainCode) || MAINSKILLS[0];
+  const mxp = state.skills[m.code]?.totalXp || 0;
+  const mp = xpProgress(mxp);
+
+  const selectedNode = nodeById(state.ui.selectedNode);
+  const selectedLabel = selectedNode ? selectedNode.name : "(main)";
+
+  const root = el(`
+    <div class="grid">
+      <div class="card">
+        <div class="row sp wrap">
+          <div>
+            <div class="kicker">${m.code}</div>
+            <h2 style="margin-top:6px">${escapeHtml(m.name)} — Main Skill Page</h2>
+            <div class="muted">Level ${mp.lvl} • Total XP ${mxp}</div>
+            <div class="hint" style="margin-top:6px">
+              Selected target: <span class="chip">${m.code} / ${escapeHtml(selectedLabel)}</span>
+            </div>
+          </div>
+          <div class="row wrap">
+            <button class="btn primary" id="pageNotes">Notes</button>
+            <button class="btn" id="back">← Back</button>
+            <button class="btn ok" id="addTop">+ Top subskill</button>
+            <button class="btn ok" id="addGoal">+ Goal</button>
+          </div>
+        </div>
+
+        <div class="pillbar">
+          <button class="pill ${state.ui.skillSubView==="TREE"?"active":""}" data-sub="TREE">Tree</button>
+          <button class="pill ${state.ui.skillSubView==="GOALS"?"active":""}" data-sub="GOALS">Goals</button>
+          <button class="pill ${state.ui.skillSubView==="TROPHY"?"active":""}" data-sub="TROPHY">Trophy Room</button>
+        </div>
+
+        <div class="xpbar" style="margin-top:10px"><div style="width:${Math.round(mp.pct*100)}%"></div></div>
+        <div class="hr"></div>
+
+        <div id="subViewMount"></div>
+      </div>
+    </div>
+  `);
+
+  root.querySelector("#pageNotes").onclick = openNotesForCurrentPage;
+
+  root.querySelector("#back").onclick = ()=>{
+    state.ui.view = "LIST";
+    state.ui.selectedNode = null;
+    saveState(); render();
+  };
+  root.querySelector("#addTop").onclick = ()=> openAddSubskillModal(mainCode, null);
+  root.querySelector("#addGoal").onclick = ()=> openAddGoalModal(mainCode, state.ui.selectedNode);
+
+  root.querySelectorAll("[data-sub]").forEach(btn=>{
+    btn.onclick = ()=>{
+      state.ui.skillSubView = btn.dataset.sub;
+      saveState(); render();
+    };
+  });
+
+  const mount = root.querySelector("#subViewMount");
+
+  if (state.ui.skillSubView === "TREE"){
+    const sub = el(`
+      <div class="grid cols2">
+        <div>
+          <h3>Tree (boxes + lines)</h3>
+          <div id="graphMount"></div>
+          <div class="hint" style="margin-top:8px">
+            Missions appear under nodes as <span class="accent">blue</span> boxes. Habits appear as <span class="oktxt">green</span> boxes.
+          </div>
+        </div>
+        <div>
+          <h3>Create mission/habit (targets selected node)</h3>
+          ${createMissionHabitFormHtml()}
+        </div>
+      </div>
+    `);
+    mount.appendChild(sub);
+
+    renderMainTreeGraph(mainCode, sub.querySelector("#graphMount"));
+    bindMissionHabitForm(sub, ()=>({ mainCode: state.ui.selectedMain, nodeId: state.ui.selectedNode }));
+
+  } else if (state.ui.skillSubView === "GOALS"){
+    const goals = state.goals.filter(g=>g.mainCode===mainCode);
+    const sub = el(`
+      <div class="grid cols2">
+        <div class="card">
+          <div class="row sp wrap">
+            <h3 style="margin:0">Goals for ${mainCode}</h3>
+            <button class="btn ok small" id="addGoal2">+ Goal</button>
+          </div>
+          <div class="hr"></div>
+          <div class="list" id="goalList"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin:0">Tip</h3>
+          <div class="hr"></div>
+          <div class="muted">
+            Goals automatically appear in the global <b>GOALS</b> tab too.
+          </div>
+        </div>
+      </div>
+    `);
+
+    sub.querySelector("#addGoal2").onclick = ()=> openAddGoalModal(mainCode, state.ui.selectedNode);
+
+    const list = sub.querySelector("#goalList");
+    list.innerHTML = "";
+    if (!goals.length){
+      list.appendChild(el(`<div class="muted">No goals yet.</div>`));
+    } else {
+      for (const g of goals){
+        const node = nodeById(g.nodeId);
+        const due = g.dueISO ? new Date(g.dueISO).toLocaleDateString() : "";
+        const it = el(`
+          <div class="item">
+            <div class="row sp wrap">
+              <div>
+                <div class="title">${escapeHtml(g.title)} ${g.done?`<span class="chip">DONE</span>`:""}</div>
+                <div class="meta">
+                  <span class="chip">${g.mainCode} / ${escapeHtml(node?node.name:"(main)")}</span>
+                  ${due?`<span class="chip">Due: ${escapeHtml(due)}</span>`:""}
+                </div>
+                ${g.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(g.desc)}</div>`:""}
+              </div>
+              <div class="row wrap">
+                ${g.done?`<button class="btn small">Mark Undone</button>`:`<button class="btn small ok">Mark Done</button>`}
+                <button class="btn small ok">🏆 Trophy</button>
+                <button class="btn small bad">Delete</button>
+              </div>
+            </div>
+          </div>
+        `);
+        const [doneBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
+        doneBtn.onclick = ()=>{ g.done = !g.done; saveState(); render(); };
+        trophyBtn.onclick = ()=>{ addToTrophyRoom({ mainCode: g.mainCode, title: g.title, desc: g.desc, kind: "goal" }); saveState(); render(); };
+        delBtn.onclick = ()=>{
+          if (!confirm(`Delete goal "${g.title}"?`)) return;
+          state.goals = state.goals.filter(x=>x.id!==g.id);
+          saveState(); render();
+        };
+        list.appendChild(it);
+      }
+    }
+
+    mount.appendChild(sub);
+
+  } else {
+    const trophies = state.trophies.filter(t=>t.mainCode===mainCode);
+    const sub = el(`
+      <div class="grid cols2">
+        <div class="card">
+          <div class="row sp wrap">
+            <h3 style="margin:0">Trophy Room — ${mainCode}</h3>
+            <button class="btn bad small" id="clear">Clear</button>
+          </div>
+          <div class="hr"></div>
+          <div class="list" id="tList"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin:0">Auto trophies</h3>
+          <div class="hr"></div>
+          <div class="muted">
+            Missions with max reps automatically move here when completed.
+          </div>
+        </div>
+      </div>
+    `);
+    sub.querySelector("#clear").onclick = ()=>{
+      if (!confirm(`Clear ALL trophies for ${mainCode}?`)) return;
+      state.trophies = state.trophies.filter(t=>t.mainCode!==mainCode);
+      saveState(); render();
+    };
+
+    const list = sub.querySelector("#tList");
+    list.innerHTML = "";
+    if (!trophies.length){
+      list.appendChild(el(`<div class="muted">No trophies yet.</div>`));
+    } else {
+      for (const t of trophies){
+        const when = new Date(t.createdAt).toLocaleString();
+        const it = el(`
+          <div class="item">
+            <div class="row sp wrap">
+              <div>
+                <div class="title">🏆 ${escapeHtml(t.title)}</div>
+                <div class="meta">
+                  <span class="chip">${escapeHtml(t.kind)}</span>
+                  <span class="chip">${escapeHtml(when)}</span>
+                </div>
+                ${t.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(t.desc)}</div>`:""}
+              </div>
+              <div class="row wrap">
+                <button class="btn small bad">Delete</button>
+              </div>
+            </div>
+          </div>
+        `);
+        it.querySelector("button").onclick = ()=>{
+          if (!confirm("Delete this trophy?")) return;
+          state.trophies = state.trophies.filter(x=>x.id!==t.id);
+          saveState(); render();
+        };
+        list.appendChild(it);
+      }
+    }
+
+    mount.appendChild(sub);
+  }
+
+  return root;
+}
+
+/* SKILLSMAP (STATIC OVERVIEW — NOT CLICKABLE) */
+function screenSkillsMap(){
+  const top = pageHeaderWithNotes({
+    kicker:"Skills Map",
+    title:"Strategic overview (static)",
+    subtitle:"Not clickable. Just an overview of subskills per mainskill on 2 rows."
+  });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <div class="hint">
+          This replaces the old search map. If you want it to look even more like your MS Paint image, tell me the exact 2-row order you want and we’ll lock it.
+        </div>
+      </div>
+      <div class="mapGrid" id="map"></div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  // 2-row arrangement: first 8 then remaining 7 (like “2 rows”)
+  const firstRow = MAINSKILLS.slice(0, 8);
+  const secondRow = MAINSKILLS.slice(8);
+
+  const order = [...firstRow, ...secondRow];
+
+  const map = root.querySelector("#map");
+  map.innerHTML = "";
+
+  for (const m of order){
+    const sub = nodesForMain(m.code)
+      .filter(n=>n.parentId==null)
+      .map(n=>n.name);
+
+    const panel = el(`
+      <div class="mapPanel">
+        <div class="mapPanelHeader">
+          <div class="code">${escapeHtml(m.code)} — ${escapeHtml(m.name)}</div>
+          <div class="muted">${sub.length} top subskills</div>
+        </div>
+        <div class="mapBoxes" aria-hidden="true"></div>
+      </div>
+    `);
+
+    const boxes = panel.querySelector(".mapBoxes");
+    if (!sub.length){
+      boxes.appendChild(el(`<div class="muted" style="padding:6px 2px">No top-level subskills yet.</div>`));
+    } else {
+      for (const s of sub){
+        boxes.appendChild(el(`<div class="mapBox">${escapeHtml(s)}</div>`));
+      }
+    }
+    map.appendChild(panel);
+  }
+
+  return root;
+}
+
+/* MISSIONS TAB */
+function screenMissions(){
+  const top = pageHeaderWithNotes({ kicker:"Missions", title:"All missions", subtitle:"You can also add missions directly from a node in the skill tree." });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <h3>Your missions</h3>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const list = root.querySelector("#list");
+  list.innerHTML = "";
+
+  if (!state.missions.length){
+    list.appendChild(el(`<div class="muted">No missions yet.</div>`));
+    return root;
+  }
+
+  for (const ms of state.missions){
+    const n = nodeById(ms.nodeId);
+    const reps = ms.maxReps == null ? `${ms.points||0} / ∞` : `${ms.points||0} / ${ms.maxReps}`;
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${escapeHtml(ms.title)}</div>
+            <div class="meta">
+              <span class="chip">${ms.mainCode} / ${escapeHtml(n ? n.name : "(main)")}</span>
+              <span class="chip">Reps ${escapeHtml(reps)}</span>
+            </div>
+            ${ms.desc ? `<div class="muted" style="margin-top:6px">${escapeHtml(ms.desc)}</div>` : ""}
+          </div>
+          <div class="row wrap">
+            <button class="btn small ok">Finish (+1)</button>
+            <button class="btn small">Undo (-1)</button>
+            <button class="btn small ok">🏆</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [finishBtn, undoBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
+    finishBtn.onclick = ()=>{ finishMission(ms); render(); };
+    undoBtn.onclick = ()=>{ undoMission(ms); render(); };
+    trophyBtn.onclick = ()=>{
+      addToTrophyRoom({ mainCode: ms.mainCode, title: ms.title, desc: ms.desc, kind: "mission" });
+      state.missions = state.missions.filter(x=>x.id!==ms.id);
+      saveState(); render();
+    };
+    delBtn.onclick = ()=>{
+      if (!confirm(`Delete mission "${ms.title}"?`)) return;
+      state.missions = state.missions.filter(x=>x.id!==ms.id);
+      saveState(); render();
+    };
+
+    list.appendChild(it);
+  }
+
+  return root;
+}
+
+/* HABITS TAB */
+function screenHabits(){
+  const top = pageHeaderWithNotes({ kicker:"Habits", title:"All habits", subtitle:"Habits also appear under nodes as green boxes." });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <h3>Your habits</h3>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const list = root.querySelector("#list");
+  list.innerHTML = "";
+
+  if (!state.habits.length){
+    list.appendChild(el(`<div class="muted">No habits yet.</div>`));
+    return root;
+  }
+
+  for (const h of state.habits){
+    const n = nodeById(h.nodeId);
+    const due = h.dueISO ? new Date(h.dueISO).toLocaleDateString() : "";
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${escapeHtml(h.title)}</div>
+            <div class="meta">
+              <span class="chip">${h.mainCode} / ${escapeHtml(n ? n.name : "(main)")}</span>
+              <span class="chip">Done ${h.points||0}</span>
+              ${due?`<span class="chip">Due ${escapeHtml(due)}</span>`:""}
+            </div>
+            ${h.desc ? `<div class="muted" style="margin-top:6px">${escapeHtml(h.desc)}</div>` : ""}
+          </div>
+          <div class="row wrap">
+            <button class="btn small ok">Finish (+1)</button>
+            <button class="btn small">Undo (-1)</button>
+            <button class="btn small ok">🏆</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [finishBtn, undoBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
+    finishBtn.onclick = ()=>{ finishHabit(h); render(); };
+    undoBtn.onclick = ()=>{ undoHabit(h); render(); };
+    trophyBtn.onclick = ()=>{
+      addToTrophyRoom({ mainCode: h.mainCode, title: h.title, desc: h.desc, kind: "habit" });
+      state.habits = state.habits.filter(x=>x.id!==h.id);
+      saveState(); render();
+    };
+    delBtn.onclick = ()=>{
+      if (!confirm(`Delete habit "${h.title}"?`)) return;
+      state.habits = state.habits.filter(x=>x.id!==h.id);
+      saveState(); render();
+    };
+
+    list.appendChild(it);
+  }
+
+  return root;
+}
+
+/* GOALS TAB */
+function screenGoals(){
+  const top = pageHeaderWithNotes({ kicker:"Goals", title:"All goals (auto collected)", subtitle:"Goals added under any skill automatically appear here." });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <h3>Goals</h3>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const list = root.querySelector("#list");
+  list.innerHTML = "";
+
+  if (!state.goals.length){
+    list.appendChild(el(`<div class="muted">No goals yet.</div>`));
+    return root;
+  }
+
+  const sorted = [...state.goals].sort((a,b)=>{
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    const ad = a.dueISO ? new Date(a.dueISO).getTime() : Infinity;
+    const bd = b.dueISO ? new Date(b.dueISO).getTime() : Infinity;
+    return ad - bd;
+  });
+
+  for (const g of sorted){
+    const node = nodeById(g.nodeId);
+    const due = g.dueISO ? new Date(g.dueISO).toLocaleDateString() : "";
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${escapeHtml(g.title)} ${g.done?`<span class="chip">DONE</span>`:""}</div>
+            <div class="meta">
+              <span class="chip">${g.mainCode} — ${escapeHtml(mainskillName(g.mainCode))}</span>
+              <span class="chip">${g.mainCode} / ${escapeHtml(node?node.name:"(main)")}</span>
+              ${due?`<span class="chip">Due: ${escapeHtml(due)}</span>`:""}
+            </div>
+            ${g.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(g.desc)}</div>`:""}
+          </div>
+          <div class="row wrap">
+            <button class="btn small primary">Open Skill</button>
+            ${g.done?`<button class="btn small">Undone</button>`:`<button class="btn small ok">Done</button>`}
+            <button class="btn small ok">🏆</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [openBtn, doneBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
+    openBtn.onclick = ()=>{
+      state.ui.activeTab = "MAINSKILLS";
+      state.ui.view = "DETAIL";
+      state.ui.selectedMain = g.mainCode;
+      state.ui.selectedNode = g.nodeId || null;
+      state.ui.skillSubView = "GOALS";
+      saveState(); render();
+    };
+    doneBtn.onclick = ()=>{ g.done = !g.done; saveState(); render(); };
+    trophyBtn.onclick = ()=>{ addToTrophyRoom({ mainCode: g.mainCode, title: g.title, desc: g.desc, kind: "goal" }); saveState(); render(); };
+    delBtn.onclick = ()=>{
+      if (!confirm(`Delete goal "${g.title}"?`)) return;
+      state.goals = state.goals.filter(x=>x.id!==g.id);
+      saveState(); render();
+    };
+
+    list.appendChild(it);
+  }
+
+  return root;
+}
+
+/* INVESTMENTS */
+function screenInvestments(){
+  const top = pageHeaderWithNotes({
+    kicker:"Investments",
+    title:"Items to buy / invest in",
+    subtitle:"Tap Purchased to move an item to the Purchased list."
+  });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+
+      <div class="card">
+        <div class="row sp wrap">
+          <div class="muted">Wishlist renamed to Investments. Purchased items are tracked separately.</div>
+          <button class="btn ok" id="add">+ Add New</button>
+        </div>
+      </div>
+
+      <div class="grid cols2">
+        <div class="card">
+          <h3>Investments</h3>
+          <div class="list" id="inv"></div>
+        </div>
+        <div class="card">
+          <h3>Purchased</h3>
+          <div class="list" id="pur"></div>
+        </div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  root.querySelector("#add").onclick = ()=> openAddInvestmentModal();
+
+  const inv = root.querySelector("#inv");
+  const pur = root.querySelector("#pur");
+  inv.innerHTML = "";
+  pur.innerHTML = "";
+
+  if (!state.investments.length) inv.appendChild(el(`<div class="muted">No investments yet.</div>`));
+  if (!state.purchased.length) pur.appendChild(el(`<div class="muted">No purchased items yet.</div>`));
+
+  for (const it0 of state.investments){
+    const tag = it0.tagMain ? `${it0.tagMain} — ${mainskillName(it0.tagMain)}` : "";
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${escapeHtml(it0.title)}</div>
+            <div class="meta">
+              <span class="chip">${escapeHtml(String(it0.cost||0))} ${escapeHtml(it0.currency||"kr")}</span>
+              ${tag?`<span class="chip">${escapeHtml(tag)}</span>`:""}
+            </div>
+          </div>
+          <div class="row wrap">
+            <button class="btn small ok">Purchased</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [pBtn, dBtn] = it.querySelectorAll("button");
+    pBtn.onclick = ()=>{
+      state.investments = state.investments.filter(x=>x.id!==it0.id);
+      state.purchased.unshift({...it0, purchasedAt: new Date().toISOString()});
+      saveState(); render();
+    };
+    dBtn.onclick = ()=>{
+      if (!confirm(`Delete "${it0.title}"?`)) return;
+      state.investments = state.investments.filter(x=>x.id!==it0.id);
+      saveState(); render();
+    };
+
+    inv.appendChild(it);
+  }
+
+  for (const it0 of state.purchased){
+    const tag = it0.tagMain ? `${it0.tagMain} — ${mainskillName(it0.tagMain)}` : "";
+    const when = it0.purchasedAt ? new Date(it0.purchasedAt).toLocaleDateString() : "";
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">✅ ${escapeHtml(it0.title)}</div>
+            <div class="meta">
+              <span class="chip">${escapeHtml(String(it0.cost||0))} ${escapeHtml(it0.currency||"kr")}</span>
+              ${tag?`<span class="chip">${escapeHtml(tag)}</span>`:""}
+              ${when?`<span class="chip">Purchased: ${escapeHtml(when)}</span>`:""}
+            </div>
+          </div>
+          <div class="row wrap">
+            <button class="btn small">Unpurchase</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [uBtn, dBtn] = it.querySelectorAll("button");
+    uBtn.onclick = ()=>{
+      state.purchased = state.purchased.filter(x=>x.id!==it0.id);
+      const copy = {...it0};
+      delete copy.purchasedAt;
+      state.investments.unshift(copy);
+      saveState(); render();
+    };
+    dBtn.onclick = ()=>{
+      if (!confirm(`Delete "${it0.title}"?`)) return;
+      state.purchased = state.purchased.filter(x=>x.id!==it0.id);
+      saveState(); render();
+    };
+
+    pur.appendChild(it);
+  }
+
+  return root;
+}
+
+/* NOTES TAB */
+function screenNotes(){
+  const top = pageHeaderWithNotes({ kicker:"Notes", title:"All page notes", subtitle:"Every page has its own notes. Add notes using the Notes button on any page." });
+  top.querySelector("[data-notes]").onclick = openNotesForCurrentPage;
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <div class="row sp wrap">
+          <div class="muted">Tip: use Notes to plan strategy, priorities, and next actions.</div>
+          <button class="btn ok" id="new">New note for current page</button>
+        </div>
+        <div class="hr"></div>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  root.querySelector("#new").onclick = openNotesForCurrentPage;
+
+  const list = root.querySelector("#list");
+  list.innerHTML = "";
+
+  const entries = Object.entries(state.notes || {}).map(([key, v])=>({key, ...v}));
+  entries.sort((a,b)=> new Date(b.updatedAt||0).getTime() - new Date(a.updatedAt||0).getTime());
+
+  if (!entries.length){
+    list.appendChild(el(`<div class="muted">No notes yet. Open any page and press Notes.</div>`));
+    return root;
+  }
+
+  for (const n of entries){
+    const when = n.updatedAt ? new Date(n.updatedAt).toLocaleString() : "";
+    const preview = (n.text || "").trim().slice(0, 200);
+    const it = el(`
+      <div class="item">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">${escapeHtml(n.title || n.key)}</div>
+            <div class="meta">
+              <span class="chip">${escapeHtml(n.key)}</span>
+              ${when ? `<span class="chip">${escapeHtml(when)}</span>` : ``}
+            </div>
+            <div class="muted" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(preview)}${(n.text||"").length>200?"…":""}</div>
+          </div>
+          <div class="row wrap">
+            <button class="btn small primary">Open page</button>
+            <button class="btn small ok">Edit</button>
+            <button class="btn small bad">Delete</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    const [openBtn, editBtn, delBtn] = it.querySelectorAll("button");
+    openBtn.onclick = ()=>{ if (n.route) setRoute(n.route); else alert("No route saved for this note."); };
+    editBtn.onclick = ()=>{ openNotesModalFor({ key:n.key, title:n.title || n.key, route:n.route || {activeTab:"NOTES"} }); };
+    delBtn.onclick = ()=>{
+      if (!confirm("Delete this note?")) return;
+      delete state.notes[n.key];
+      saveState(); render();
+    };
+
+    list.appendChild(it);
+  }
+
+  return root;
+}
+
+/* =========================
+   ROUTER
+========================= */
+function render(){
+  renderTabs();
+  mainEl.innerHTML = "";
+  const tab = state.ui.activeTab;
+
+  if (tab==="PROFILE") mainEl.appendChild(screenProfile());
+  else if (tab==="MAINSKILLS") mainEl.appendChild(screenMainSkills());
+  else if (tab==="SKILLSMAP") mainEl.appendChild(screenSkillsMap());
+  else if (tab==="MISSIONS") mainEl.appendChild(screenMissions());
+  else if (tab==="HABITS") mainEl.appendChild(screenHabits());
+  else if (tab==="GOALS") mainEl.appendChild(screenGoals());
+  else if (tab==="INVESTMENTS") mainEl.appendChild(screenInvestments());
+  else if (tab==="NOTES") mainEl.appendChild(screenNotes());
+  else mainEl.appendChild(screenMainSkills());
+}
+
+/* =========================
+   EXPORT / IMPORT / RESET
+========================= */
+document.getElementById("exportBtn").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "gogetta_export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById("importBtn").onclick = ()=>{
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "application/json";
+  inp.onchange = ()=>{
+    const file = inp.files?.[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const obj = JSON.parse(String(r.result||""));
+        localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+        state = loadState();
+        saveState();
+        render();
+      }catch{
+        alert("Import failed: invalid JSON.");
+      }
+    };
+    r.readAsText(file);
+  };
+  inp.click();
+};
+
+document.getElementById("resetBtn").onclick = ()=>{
+  if (!confirm("Reset EVERYTHING? This deletes local data on this device.")) return;
+  state = defaultState();
+  saveState();
+  render();
+};
+
+/* Top Notes button */
+document.getElementById("notesBtnTop").onclick = ()=>{
+  state.ui.activeTab = "NOTES";
+  saveState();
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
