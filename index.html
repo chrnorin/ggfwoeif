@@ -9,12 +9,14 @@
   <style>
     :root{
       --bg:#0b0b0c; --card:#141417; --card2:#1b1b20; --txt:#f2f2f2; --muted:#a7a7b3;
-      --line:#2a2a33; --accent:#66a3ff; --ok:#52d273; --bad:#ff6b6b; --chip:#23232b;
+      --line:#2a2a33; --chip:#23232b;
+      --blue:#66a3ff; --green:#52d273; --red:#ff6b6b;
+      --mission:#4aa3ff; --habit:#52d273; --goal:#f2c94c; /* gold */
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial}
     button,input,select,textarea{font:inherit}
-    .app{max-width:1100px;margin:0 auto;min-height:100svh;display:flex;flex-direction:column}
+    .app{max-width:1200px;margin:0 auto;min-height:100svh;display:flex;flex-direction:column}
     header{position:sticky;top:0;z-index:20;background:rgba(11,11,12,.92);backdrop-filter: blur(10px);border-bottom:1px solid var(--line)}
     .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px}
     .brand{font-weight:900;letter-spacing:.4px}
@@ -25,7 +27,7 @@
     main{flex:1;padding:12px}
 
     .grid{display:grid;gap:10px}
-    @media (min-width:860px){ .grid.cols2{grid-template-columns:1fr 1fr} .grid.cols3{grid-template-columns:1fr 1fr 1fr} }
+    @media (min-width:900px){ .grid.cols2{grid-template-columns:1fr 1fr} .grid.cols3{grid-template-columns:1fr 1fr 1fr} }
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
     .card h2,.card h3{margin:0 0 10px}
     .row{display:flex;gap:10px;align-items:center}
@@ -41,10 +43,6 @@
     .btn.bad{border-color:rgba(255,107,107,.6)}
     .btn.ghost{background:transparent}
     .btn.small{padding:6px 8px;border-radius:10px}
-    .pillbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .pill{border:1px solid var(--line);background:transparent;color:var(--txt);
-      padding:7px 10px;border-radius:999px;cursor:pointer}
-    .pill.active{border-color:rgba(102,163,255,.7);box-shadow:0 0 0 3px rgba(102,163,255,.12) inset}
 
     input,select,textarea{
       background:#0f0f12;border:1px solid var(--line);color:var(--txt);
@@ -73,24 +71,24 @@
     }
     .modalBackdrop.show{display:flex}
     .modal{
-      width:min(760px,100%); background:var(--card); border:1px solid var(--line);
+      width:min(820px,100%); background:var(--card); border:1px solid var(--line);
       border-radius:18px; padding:12px;
       box-shadow:0 20px 80px rgba(0,0,0,.55);
     }
     .modal header{position:static;background:transparent;border:0;padding:0;margin-bottom:10px}
     .modalTitle{font-weight:900}
 
-    /* Graph */
+    /* TREE / GRAPH */
     .graphWrap{
       position:relative;
       width:100%;
-      min-height:520px;
+      min-height:560px;
       border:1px solid var(--line);
       border-radius:16px;
       background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
       overflow:auto;
     }
-    .graphStage{ position:relative; width:1100px; height:620px; }
+    .graphStage{ position:relative; width:1200px; height:760px; }
     .graphLines{ position:absolute; inset:0; pointer-events:none; }
 
     .node{
@@ -133,43 +131,77 @@
     .nodeBtn.ok{ border-color:rgba(82,210,115,.55); }
     .nodeBtn.primary{ border-color:rgba(102,163,255,.6); }
 
-    /* Separate mission/habit "child" boxes under nodes */
-    .childArea{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
-    .childHeader{ font-size:12px; color:var(--muted); display:flex; align-items:center; gap:8px; }
-    .childHeader::before{ content:""; width:14px; height:1px; background:var(--line); display:inline-block; }
-    .childStack{ margin-left:14px; padding-left:10px; border-left:2px solid rgba(102,163,255,.22); display:flex; flex-direction:column; gap:8px; }
-    .childStack.greenLine{ border-left-color: rgba(82,210,115,.22); }
-
-    .miniBox{
-      border:1px solid var(--line);
+    /* Separate child boxes (mission/habit) */
+    .childNode{
+      position:absolute;
+      width:220px;
       border-radius:12px;
       padding:8px;
       font-size:12px;
+      border:1px solid var(--line);
       background: rgba(255,255,255,.02);
+      cursor:pointer;
+      user-select:none;
     }
-    .miniBox.blue{
-      background: rgba(102,163,255,.12);
-      border-color: rgba(102,163,255,.35);
-    }
-    .miniBox.green{
-      background: rgba(82,210,115,.12);
-      border-color: rgba(82,210,115,.35);
-    }
-    .miniTitle{ font-weight:800; margin-bottom:6px; }
-    .miniRow{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-    .miniRow .btn{ padding:6px 8px; border-radius:10px; }
+    .childNode:hover{filter:brightness(1.06)}
+    .childNode.blue{ background: rgba(74,163,255,.14); border-color: rgba(74,163,255,.40); }
+    .childNode.green{ background: rgba(82,210,115,.14); border-color: rgba(82,210,115,.40); }
+    .childTitle{ font-weight:900; margin-bottom:6px; }
+    .childRow{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .childRow .btn{ padding:6px 8px; border-radius:10px; }
 
-    /* Skillsmap (static overview, NOT clickable) */
-    .mapGrid{
+    /* Pills */
+    .pillbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{border:1px solid var(--line);background:transparent;color:var(--txt);
+      padding:7px 10px;border-radius:999px;cursor:pointer}
+    .pill.active{border-color:rgba(102,163,255,.7);box-shadow:0 0 0 3px rgba(102,163,255,.12) inset}
+
+    /* Profile tiles (with icons) */
+    .skillsTiles{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:repeat(2, 1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+    @media (min-width:900px){ .skillsTiles{ grid-template-columns:repeat(3, 1fr); } }
+    .tile{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      cursor:pointer;
+    }
+    .tile:hover{ filter:brightness(1.06); }
+    .skillIcon{
+      width:42px;height:42px;border-radius:14px;
+      border:1px solid var(--line);
+      display:grid;place-items:center;
+      background:rgba(255,255,255,.02);
+      flex:0 0 auto;
+    }
+    .skillIcon svg{ width:24px; height:24px; display:block; }
+    .tileMain{ flex:1; min-width:0; }
+    .tileCode{ font-weight:900; display:flex; gap:8px; align-items:baseline; }
+    .tileLvl{ color:var(--muted); font-size:12px; white-space:nowrap; }
+
+    /* Skillsmap: 2 rows of mainskills, each shows MINI TREE (not clickable) */
+    .mapRows{ display:flex; flex-direction:column; gap:10px; }
+    .mapRow{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
       gap:10px;
     }
+    @media (max-width:900px){
+      .mapRow{ grid-template-columns:repeat(2, 1fr); }
+    }
     .mapPanel{
-      background:transparent;
       border:1px solid var(--line);
       border-radius:16px;
       overflow:hidden;
+      background:rgba(255,255,255,.01);
     }
     .mapPanelHeader{
       padding:10px 12px;
@@ -177,60 +209,79 @@
       display:flex; align-items:center; justify-content:space-between;
       background:rgba(255,255,255,.02);
     }
-    .mapPanelHeader .code{ font-weight:900; letter-spacing:.08em; }
-    .mapBoxes{
-      padding:10px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-content:flex-start;
-      min-height:220px;
+    .mapPanelHeader .code{ font-weight:900; letter-spacing:.08em; display:flex; gap:8px; align-items:center; }
+    .miniTree{
+      position:relative;
+      height:240px;
+      overflow:hidden;
     }
-    .mapBox{
+    .miniTree svg{ position:absolute; inset:0; pointer-events:none; }
+    .miniBox{
+      position:absolute;
+      padding:6px 8px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      font-size:11px;
+      color:var(--txt);
       pointer-events:none; /* NOT CLICKABLE */
       user-select:none;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
-      color:var(--txt);
-      border-radius:12px;
-      padding:8px 10px;
-      font-size:12px;
-      max-width:100%;
+      max-width:180px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
+    .miniBox.main{ font-weight:900; }
+    .miniBox.blue{ border-color: rgba(74,163,255,.45); background: rgba(74,163,255,.12); }
+    .miniBox.green{ border-color: rgba(82,210,115,.45); background: rgba(82,210,115,.12); }
 
-    /* OSRS-like skill tiles (simple, no copyrighted icons) */
-    .skillsTiles{
+    /* Calendar */
+    .calHeader{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .calGrid{
       display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:8px;
+      grid-template-columns:repeat(7, 1fr);
+      gap:6px;
       margin-top:10px;
     }
-    @media (min-width:860px){ .skillsTiles{ grid-template-columns:repeat(5, 1fr); } }
-    .tile{
+    .dow{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      padding:6px 0;
+      border-bottom:1px solid var(--line);
+    }
+    .dayCell{
+      min-height:110px;
       border:1px solid var(--line);
-      border-radius:14px;
-      background:rgba(255,255,255,.02);
+      border-radius:12px;
+      background:rgba(255,255,255,.01);
       padding:8px;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      cursor:pointer;
+      overflow:hidden;
     }
-    .tile:hover{ filter:brightness(1.06); }
-    .badge{
-      width:34px;height:34px;border-radius:12px;
+    .dayNum{color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
+    .events{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+    .evt{
       border:1px solid var(--line);
-      display:grid;place-items:center;
-      font-weight:900;letter-spacing:.06em;
-      background:rgba(102,163,255,.10);
+      border-radius:10px;
+      padding:5px 6px;
+      font-size:11px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .tileMain{ flex:1; min-width:0; }
-    .tileCode{ font-weight:900; }
-    .tileLvl{ color:var(--muted); font-size:12px; white-space:nowrap; }
+    .evt.mission{ border-color: rgba(74,163,255,.50); background: rgba(74,163,255,.12); }
+    .evt.habit{ border-color: rgba(82,210,115,.50); background: rgba(82,210,115,.12); }
+    .evt.goal{ border-color: rgba(242,201,76,.55); background: rgba(242,201,76,.14); }
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .swatch{width:12px;height:12px;border-radius:4px;display:inline-block;border:1px solid var(--line);margin-right:6px}
     .hint{font-size:12px;color:var(--muted)}
-    .danger{color:var(--bad)}
-    .oktxt{color:var(--ok)}
-    .accent{color:var(--accent)}
+    .danger{color:var(--red)}
+    .accent{color:var(--blue)}
+
+    /* Stats chart */
+    canvas{max-width:100%}
+    .legendList{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .legendItem{display:flex;gap:8px;align-items:center}
   </style>
 </head>
 
@@ -299,9 +350,19 @@ function xpProgress(totalXp){
   const pct = span>0 ? clamp(cur/span, 0, 1) : 0;
   return {lvl, cur, need: span, pct, nextNeed, curNeed};
 }
+function fmtDate(iso){
+  if (!iso) return "";
+  try{ return new Date(iso).toLocaleDateString(); }catch{ return ""; }
+}
+function todayKey(d=new Date()){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const da = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
 
 /* =========================
-   MAINSKILLS
+   MAINSKILLS + COLORS + ICONS
 ========================= */
 const MAINSKILLS = [
   { code:"SOC", name:"Social" },
@@ -320,6 +381,48 @@ const MAINSKILLS = [
   { code:"WOR", name:"Work" },
   { code:"DAT", name:"Dating" },
 ];
+
+const SKILL_COLOR = {
+  SOC: "#f2c94c",     // yellow
+  MEN: "#4fb3b8",     // teal blue grey hint green
+  FIN: "#7bdff2",     // light blue menthol
+  PHY: "#ffb3c7",     // light pink
+  LEA: "#f2994a",     // orange
+  APP: "#eb5757",     // red
+  DIE: "#7ee6a6",     // light green / blue green
+  SCH: "#9aa0a6",     // grey
+  HOM: "#2f80ed",     // dark-ish blue
+  CAR: "#bb6bd9",     // purple
+  SID: "#8b1a1a",     // dark red
+  BUS: "#27ae60",     // green
+  HOB: "#b07d45",     // brown
+  WOR: "#4f4f4f",     // dark grey
+  DAT: "#ff4d9a",     // dark pink
+};
+
+function iconSvg(code){
+  const stroke = SKILL_COLOR[code] || "#ffffff";
+  const common = `fill="none" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
+  // Simple original icons (not copyrighted OSRS icons)
+  switch(code){
+    case "SOC": return `<svg viewBox="0 0 24 24" ${common}><path d="M7 8h10"/><path d="M7 12h6"/><path d="M6 18l-2 2v-4"/><path d="M20 16a3 3 0 0 1-3 3H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4v9z"/></svg>`;
+    case "MEN": return `<svg viewBox="0 0 24 24" ${common}><path d="M10 4c2-2 6 0 6 3 0 1-1 2-1 3"/><path d="M8 10c-1-1-2-2-2-4 0-2 2-4 4-4"/><path d="M7 13c-1 0-2 1-2 2v2c0 2 2 4 4 4h4c3 0 6-3 6-6v-1c0-2-2-4-4-4h-1"/><path d="M9 13h6"/></svg>`;
+    case "FIN": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 1v22"/><path d="M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6"/></svg>`;
+    case "PHY": return `<svg viewBox="0 0 24 24" ${common}><path d="M4 10v4"/><path d="M20 10v4"/><path d="M6 9h2v6H6"/><path d="M16 9h2v6h-2"/><path d="M8 12h8"/></svg>`;
+    case "LEA": return `<svg viewBox="0 0 24 24" ${common}><path d="M5 18h14"/><path d="M7 18l-2-9 4 3 3-6 3 6 4-3-2 9"/></svg>`;
+    case "APP": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/></svg>`;
+    case "DIE": return `<svg viewBox="0 0 24 24" ${common}><path d="M8 21c7 0 12-6 12-13 0-3-2-5-5-5C8 3 4 8 4 14c0 4 2 7 4 7z"/><path d="M12 3c0 4-3 6-6 7"/></svg>`;
+    case "SCH": return `<svg viewBox="0 0 24 24" ${common}><path d="M4 19V6a2 2 0 0 1 2-2h12v15"/><path d="M6 18h14"/><path d="M8 8h6"/></svg>`;
+    case "HOM": return `<svg viewBox="0 0 24 24" ${common}><path d="M3 10l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>`;
+    case "CAR": return `<svg viewBox="0 0 24 24" ${common}><path d="M8 6h8"/><path d="M6 6v14h12V6"/><path d="M9 10h6"/><path d="M9 14h6"/></svg>`;
+    case "SID": return `<svg viewBox="0 0 24 24" ${common}><path d="M5 19c6 0 10-4 10-10V6"/><path d="M15 6h4v4"/><path d="M4 20l6-6"/></svg>`;
+    case "BUS": return `<svg viewBox="0 0 24 24" ${common}><path d="M3 7h18"/><path d="M5 7v13h14V7"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M8 12h8"/></svg>`;
+    case "HOB": return `<svg viewBox="0 0 24 24" ${common}><path d="M6 14h12"/><path d="M8 10h8"/><path d="M6 18h12"/><path d="M8 6h8"/></svg>`;
+    case "WOR": return `<svg viewBox="0 0 24 24" ${common}><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M4 7h16v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V7z"/><path d="M9 12h6"/></svg>`;
+    case "DAT": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>`;
+    default: return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2v20"/><path d="M2 12h20"/></svg>`;
+  }
+}
 
 const DEFAULT_SUBSKILLS_BY_MAIN = {
   SOC: ["Friends","Communication","Relationship","Family","Social Media","Contacts/Networking","Conversations","Hooking/Flirting","Calls","Winks","Group Conversations","Conversations with Stranger"],
@@ -354,7 +457,7 @@ function cryptoId(){
 /* =========================
    STATE
 ========================= */
-const STORE_KEY = "gogetta_tree_v5_click_desc";
+const STORE_KEY = "gogetta_tree_v7_calendar_stats_colors_icons";
 
 function defaultState(){
   const skills = {};
@@ -370,29 +473,33 @@ function defaultState(){
   }
 
   return {
-    version: 5,
+    version: 7,
     profile: { username: "Player", note: "" },
 
     skills,
     subskills,
 
-    missions: [],  // {id,title,desc,mainCode,nodeId,points,maxReps|null}
-    habits: [],    // {id,title,desc,mainCode,nodeId,points,dueISO}
+    missions: [],  // {id,title,desc,mainCode,nodeId,points,maxReps|null,dueISO?,createdAt}
+    habits: [],    // {id,title,desc,mainCode,nodeId,points,dueISO,createdAt}
 
-    goals: [],     // global goals
-    trophies: [],  // trophyroom items per mainskill
+    goals: [],     // {id,title,desc,mainCode,nodeId,dueISO,done,createdAt,finishedAt?}
+    trophies: [],  // {id,mainCode,kind,title,desc,createdAt,startAt?,finishedAt?,dueISO?}
 
     investments: [],
     purchased: [],
 
-    notes: {},     // { [key]: { title, text, updatedAt, route } }
+    notes: {},
 
+    xpLog: [],     // {day:"YYYY-MM-DD", mainCode, delta} (delta can be negative)
     ui: {
       activeTab: "PROFILE",
       view: "LIST",
       selectedMain: "SOC",
       selectedNode: null,
       skillSubView: "TREE",
+      calView: "MONTH", // MONTH | YEAR
+      calMonth: todayKey().slice(0,7), // YYYY-MM
+      statsRangeDays: 30,
     },
   };
 }
@@ -413,7 +520,8 @@ function loadState(){
     st.investments ||= [];
     st.purchased ||= [];
     st.notes ||= {};
-    st.ui ||= { activeTab:"PROFILE", view:"LIST", selectedMain:"SOC", selectedNode:null, skillSubView:"TREE" };
+    st.xpLog ||= [];
+    st.ui ||= { activeTab:"PROFILE", view:"LIST", selectedMain:"SOC", selectedNode:null, skillSubView:"TREE", calView:"MONTH", calMonth: todayKey().slice(0,7), statsRangeDays: 30 };
 
     for (const m of MAINSKILLS){
       st.skills[m.code] ||= { totalXp: 0 };
@@ -436,9 +544,23 @@ function loadState(){
     for (const ms of st.missions){
       ms.points = Number(ms.points)||0;
       ms.maxReps = (ms.maxReps==null ? null : Number(ms.maxReps)||null);
+      ms.createdAt ||= new Date().toISOString();
+      ms.dueISO ||= "";
     }
     for (const hb of st.habits){
       hb.points = Number(hb.points)||0;
+      hb.createdAt ||= new Date().toISOString();
+      hb.dueISO ||= "";
+    }
+    for (const g of st.goals){
+      g.createdAt ||= new Date().toISOString();
+      g.dueISO ||= "";
+      g.done = !!g.done;
+      g.finishedAt ||= "";
+    }
+    for (const x of st.xpLog){
+      x.day ||= todayKey();
+      x.delta = Number(x.delta)||0;
     }
 
     return st;
@@ -474,11 +596,17 @@ function ensureSubskill(mainCode, name, parentId){
 }
 
 /* =========================
-   XP FLOW (TREE)
+   XP FLOW + DAILY LOG
 ========================= */
-function addXpFlow(mainCode, nodeId, delta){
+function logXp(mainCode, delta, day=todayKey()){
+  if (!delta) return;
+  state.xpLog.push({ day, mainCode, delta });
+}
+function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
   delta = Number(delta)||0;
   if (!delta) return;
+
+  const day = dayOverride || todayKey();
 
   state.skills[mainCode] ||= { totalXp: 0 };
   state.skills[mainCode].totalXp = Math.max(0, (state.skills[mainCode].totalXp||0) + delta);
@@ -491,11 +619,13 @@ function addXpFlow(mainCode, nodeId, delta){
     curId = n.parentId;
   }
 
+  logXp(mainCode, delta, day);
+
   saveState();
 }
 
 /* =========================
-   PLAYER LEVEL (COMBAT LEVEL)
+   PLAYER LEVEL (CB)
 ========================= */
 function totalMainskillLevelUps(){
   let ups = 0;
@@ -521,7 +651,7 @@ function combatProgress(){
 }
 
 /* =========================
-   NOTES SYSTEM
+   NOTES
 ========================= */
 function currentPageNoteMeta(){
   const t = state.ui.activeTab;
@@ -539,14 +669,6 @@ function currentPageNoteMeta(){
     return { key:"TAB:MAINSKILLS", title:"MAINSKILLS (List)", route:{ activeTab:"MAINSKILLS", view:"LIST" } };
   }
 
-  if (t === "PROFILE") return { key:"TAB:PROFILE", title:"PROFILE", route:{ activeTab:"PROFILE" } };
-  if (t === "SKILLSMAP") return { key:"TAB:SKILLSMAP", title:"SKILLSMAP", route:{ activeTab:"SKILLSMAP" } };
-  if (t === "MISSIONS") return { key:"TAB:MISSIONS", title:"MISSIONS", route:{ activeTab:"MISSIONS" } };
-  if (t === "HABITS") return { key:"TAB:HABITS", title:"HABITS", route:{ activeTab:"HABITS" } };
-  if (t === "GOALS") return { key:"TAB:GOALS", title:"GOALS", route:{ activeTab:"GOALS" } };
-  if (t === "INVESTMENTS") return { key:"TAB:INVESTMENTS", title:"INVESTMENTS", route:{ activeTab:"INVESTMENTS" } };
-  if (t === "NOTES") return { key:"TAB:NOTES", title:"NOTES", route:{ activeTab:"NOTES" } };
-
   return { key:`TAB:${t}`, title:t, route:{ activeTab:t } };
 }
 
@@ -557,7 +679,7 @@ function openNotesModalFor(meta){
       <div class="chip">Page: <b>${escapeHtml(meta.title)}</b></div>
       <div class="field">
         <label class="muted">Notes</label>
-        <textarea id="noteText" placeholder="Write strategic notes for this page..."></textarea>
+        <textarea id="noteText" placeholder="Write notes for this page..."></textarea>
       </div>
       <div class="row wrap">
         <button class="btn ok" id="save">Save</button>
@@ -606,6 +728,8 @@ const TABS = [
   { id:"MISSIONS", label:"MISSIONS" },
   { id:"HABITS", label:"HABITS" },
   { id:"GOALS", label:"GOALS" },
+  { id:"CALENDAR", label:"CALENDAR" },
+  { id:"STATS", label:"STATS" },
   { id:"INVESTMENTS", label:"INVESTMENTS"},
   { id:"NOTES", label:"NOTES"},
 ];
@@ -650,7 +774,7 @@ function closeModal(){ modalBackdrop.classList.remove("show"); }
 /* =========================
    TROPHYROOM
 ========================= */
-function addToTrophyRoom({mainCode, title, desc, kind}){
+function addToTrophyRoom({mainCode, title, desc, kind, startAt="", finishedAt="", dueISO=""}){
   state.trophies.unshift({
     id: cryptoId(),
     mainCode,
@@ -658,19 +782,22 @@ function addToTrophyRoom({mainCode, title, desc, kind}){
     title,
     desc: desc || "",
     createdAt: new Date().toISOString(),
+    startAt: startAt || "",
+    finishedAt: finishedAt || "",
+    dueISO: dueISO || "",
   });
   saveState();
 }
 
 /* =========================
-   MISSIONS/HABITS COMPLETION (AUTO-TROPHY ON MAX REPS)
+   MISSIONS/HABITS/GOALS COMPLETION
 ========================= */
 function finishMission(m){
   m.points = (m.points||0) + 1;
   addXpFlow(m.mainCode, m.nodeId, +1);
 
   if (m.maxReps != null && m.points >= m.maxReps){
-    addToTrophyRoom({ mainCode: m.mainCode, title: m.title, desc: m.desc, kind: "mission" });
+    addToTrophyRoom({ mainCode:m.mainCode, title:m.title, desc:m.desc, kind:"mission", startAt:m.createdAt, finishedAt:new Date().toISOString(), dueISO:m.dueISO||"" });
     state.missions = state.missions.filter(x=>x.id !== m.id);
   }
   saveState();
@@ -690,6 +817,25 @@ function undoHabit(h){
   if ((h.points||0) <= 0) return;
   h.points = (h.points||0) - 1;
   addXpFlow(h.mainCode, h.nodeId, -1);
+  saveState();
+}
+function setGoalDone(g, done){
+  g.done = !!done;
+  if (g.done){
+    g.finishedAt = new Date().toISOString();
+    // auto trophy with start + finish + deadline
+    addToTrophyRoom({
+      mainCode: g.mainCode,
+      title: g.title,
+      desc: g.desc,
+      kind: "goal",
+      startAt: g.createdAt,
+      finishedAt: g.finishedAt,
+      dueISO: g.dueISO || ""
+    });
+  } else {
+    g.finishedAt = "";
+  }
   saveState();
 }
 
@@ -714,17 +860,17 @@ function openQuickAddModal(kind, mainCode, nodeId){
         <textarea id="d"></textarea>
       </div>
 
-      ${kind==="habit" ? `
-        <div class="field">
-          <label class="muted">Deadline (optional)</label>
-          <input id="due" type="date" />
-        </div>
-      ` : `
+      <div class="field">
+        <label class="muted">${kind==="habit" ? "Due date (optional)" : "Due date (optional)"}</label>
+        <input id="due" type="date" />
+      </div>
+
+      ${kind==="mission" ? `
         <div class="field">
           <label class="muted">Max reps (optional)</label>
           <input id="mr" type="number" min="1" step="1" placeholder="blank = infinite" />
         </div>
-      `}
+      ` : ``}
 
       <div class="row wrap">
         <button class="btn ok" id="add">Add</button>
@@ -739,6 +885,8 @@ function openQuickAddModal(kind, mainCode, nodeId){
   body.querySelector("#add").onclick = ()=>{
     const title = body.querySelector("#t").value.trim();
     const desc = body.querySelector("#d").value.trim();
+    const dueVal = body.querySelector("#due").value || "";
+    const dueISO = dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "";
     if (!title) return alert("Title required.");
 
     if (kind === "mission"){
@@ -752,16 +900,16 @@ function openQuickAddModal(kind, mainCode, nodeId){
         nodeId: nodeId || null,
         points: 0,
         maxReps,
+        dueISO,
         createdAt: new Date().toISOString(),
       });
     } else {
-      const dueVal = body.querySelector("#due")?.value || "";
       state.habits.unshift({
         id: cryptoId(),
         title, desc,
         mainCode,
         nodeId: nodeId || null,
-        dueISO: dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "",
+        dueISO,
         points: 0,
         createdAt: new Date().toISOString(),
       });
@@ -796,7 +944,7 @@ function openAddGoalModal(mainCode, nodeId){
         <button class="btn ok" id="save">Add Goal</button>
         <button class="btn" id="cancel">Cancel</button>
       </div>
-      <div class="hint">Goals automatically appear in the global GOALS tab.</div>
+      <div class="hint">When you mark a goal DONE, it automatically goes to the skill Trophy Room with start/finish/deadline.</div>
     </div>
   `);
 
@@ -804,7 +952,8 @@ function openAddGoalModal(mainCode, nodeId){
   body.querySelector("#save").onclick = ()=>{
     const title = body.querySelector("#gTitle").value.trim();
     const desc = body.querySelector("#gDesc").value.trim();
-    const dueVal = body.querySelector("#gDue").value;
+    const dueVal = body.querySelector("#gDue").value || "";
+    const dueISO = dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "";
     if (!title) return alert("Goal title required.");
 
     state.goals.unshift({
@@ -812,9 +961,10 @@ function openAddGoalModal(mainCode, nodeId){
       title, desc,
       mainCode,
       nodeId: nodeId || null,
-      dueISO: dueVal ? new Date(dueVal + "T00:00:00").toISOString() : "",
+      dueISO,
       done: false,
       createdAt: new Date().toISOString(),
+      finishedAt: "",
     });
 
     saveState();
@@ -897,13 +1047,16 @@ function openEditSubskillModal(nodeId){
 
       <div class="field">
         <label class="muted">Description</label>
-        <textarea id="desc" placeholder="Add notes/description for this subskill..."></textarea>
+        <textarea id="desc" placeholder="Add description for this subskill..."></textarea>
       </div>
 
       <div class="row wrap">
         <button class="btn primary" id="select">Select as target</button>
         <button class="btn ok" id="save">Save</button>
         <button class="btn" id="cancel">Cancel</button>
+      </div>
+
+      <div class="row wrap">
         <button class="btn ok" id="addChild">+ Child subskill</button>
         <button class="btn ok" id="addMission">+ Mission</button>
         <button class="btn ok" id="addHabit">+ Habit</button>
@@ -911,7 +1064,7 @@ function openEditSubskillModal(nodeId){
       </div>
 
       <div class="hint">
-        Missions/Habits appear below the subskill as child boxes and give +1 XP each completion.
+        Missions/Habits are separate child boxes under the subskill (blue/green). Completing gives +1 XP and flows up the tree.
       </div>
     </div>
   `);
@@ -932,34 +1085,23 @@ function openEditSubskillModal(nodeId){
     const newDesc = body.querySelector("#desc").value || "";
     if (!newName) return alert("Name required.");
 
-    // Renaming changes the ID (we store id as `${main}__${name}`), so we must migrate safely.
     const oldId = n.id;
     const newId = `${n.mainCode}__${newName}`;
 
-    // If name changed, migrate node + update references.
     if (newId !== oldId){
       if (state.subskills[newId]) return alert("A subskill with that name already exists in this mainskill.");
 
       const old = state.subskills[oldId];
-      // create new node
-      state.subskills[newId] = {
-        ...old,
-        id: newId,
-        name: newName,
-        description: newDesc,
-      };
+      state.subskills[newId] = { ...old, id: newId, name: newName, description: newDesc };
       delete state.subskills[oldId];
 
-      // update children parentId
       for (const s of Object.values(state.subskills)){
         if (s.parentId === oldId) s.parentId = newId;
       }
-      // update missions/habits/goals nodeId
       for (const m of state.missions){ if (m.nodeId === oldId) m.nodeId = newId; }
       for (const h of state.habits){ if (h.nodeId === oldId) h.nodeId = newId; }
       for (const g of state.goals){ if (g.nodeId === oldId) g.nodeId = newId; }
 
-      // update selection
       if (state.ui.selectedNode === oldId) state.ui.selectedNode = newId;
 
       saveState();
@@ -968,7 +1110,6 @@ function openEditSubskillModal(nodeId){
       return;
     }
 
-    // same id
     n.description = newDesc;
     n.name = newName;
     saveState();
@@ -985,14 +1126,14 @@ function openEditSubskillModal(nodeId){
 }
 
 /* =========================
-   NODE + MENU
+   NODE + PLUS MENU
 ========================= */
 function openNodePlusMenu(mainCode, nodeId){
   const node = nodeById(nodeId);
   const title = node ? node.name : "(main)";
   const body = el(`
     <div class="grid" style="gap:10px">
-      <div class="chip">Target: <b>${mainCode}</b> / ${escapeHtml(title)}</div>
+      <div class="chip">Target: <b>${escapeHtml(mainCode)}</b> / ${escapeHtml(title)}</div>
       <div class="grid cols2">
         <button class="btn ok" id="addChild">+ Subskill (child)</button>
         <button class="btn ok" id="addGoal">+ Goal</button>
@@ -1001,7 +1142,7 @@ function openNodePlusMenu(mainCode, nodeId){
         <button class="btn ok" id="addMission">+ Mission</button>
         <button class="btn ok" id="addHabit">+ Habit</button>
       </div>
-      <div class="hint">Missions show under the node as blue child boxes. Habits show as green child boxes.</div>
+      <div class="hint">Missions = blue, Habits = green, Goals = gold (deadline shown in Calendar).</div>
     </div>
   `);
 
@@ -1017,7 +1158,7 @@ function openAddSubskillModal(mainCode, parentId){
   const parentName = parentId ? (nodeById(parentId)?.name || "(unknown)") : "(main)";
   const body = el(`
     <div class="grid" style="gap:10px">
-      <div class="chip">Add subskill under <b>${mainCode} — ${escapeHtml(mainskillName(mainCode))}</b> / ${escapeHtml(parentName)}</div>
+      <div class="chip">Add subskill under <b>${escapeHtml(mainCode)} — ${escapeHtml(mainskillName(mainCode))}</b> / ${escapeHtml(parentName)}</div>
       <div class="field">
         <label class="muted">Subskill name</label>
         <input id="name" placeholder="e.g. Public Speaking" />
@@ -1052,9 +1193,10 @@ function openAddSubskillModal(mainCode, parentId){
 }
 
 /* =========================
-   TREE LAYOUT + GRAPH RENDER
+   TREE LAYOUT (subskills) + CHILD BOX LAYOUT (missions/habits)
+   Missions/Habits are separate boxes positioned under their parent subskill.
 ========================= */
-function computeTreeLayout(mainCode){
+function computeTreeLayout(mainCode, compact=false){
   const all = nodesForMain(mainCode);
   const rootId = "__ROOT__";
   const kids = new Map();
@@ -1071,10 +1213,10 @@ function computeTreeLayout(mainCode){
   const pos = new Map();
   let nextX = 0;
 
-  const X_SPACING = 280;
-  const Y_SPACING = 220;
-  const X0 = 40;
-  const Y0 = 40;
+  const X_SPACING = compact ? 200 : 300;
+  const Y_SPACING = compact ? 140 : 220;
+  const X0 = compact ? 20 : 40;
+  const Y0 = compact ? 20 : 40;
 
   function dfs(id, depth){
     const children = kids.get(id) || [];
@@ -1089,7 +1231,6 @@ function computeTreeLayout(mainCode){
     pos.set(id, { x: avg, y: depth });
     return avg;
   }
-
   dfs(rootId, 0);
 
   const px = {};
@@ -1099,8 +1240,8 @@ function computeTreeLayout(mainCode){
 
   const maxX = Math.max(0, ...Object.values(px).map(v=>v.left));
   const maxY = Math.max(0, ...Object.values(px).map(v=>v.top));
-  const stageW = Math.max(1100, maxX + 420);
-  const stageH = Math.max(780, maxY + 420);
+  const stageW = Math.max(compact ? 520 : 1200, maxX + (compact ? 320 : 480));
+  const stageH = Math.max(compact ? 260 : 780, maxY + (compact ? 200 : 520));
 
   const edges = [];
   for (const [p, arr] of kids.entries()){
@@ -1110,148 +1251,59 @@ function computeTreeLayout(mainCode){
   return { px, edges, stageW, stageH, rootId };
 }
 
-function miniMissionHtml(m){
-  const reps = m.maxReps == null ? `${m.points||0} / ∞` : `${m.points||0} / ${m.maxReps}`;
-  return `
-    <div class="miniBox blue" data-mid="${m.id}">
-      <div class="miniTitle">${escapeHtml(m.title)}</div>
-      <div class="miniRow">
-        <span class="chip">Reps ${escapeHtml(reps)}</span>
-        <button class="btn small ok" data-act="m-finish">Finish</button>
-        <button class="btn small" data-act="m-undo">Undo</button>
-        <button class="btn small ok" data-act="m-trophy">🏆</button>
-        <button class="btn small bad" data-act="m-del">Del</button>
-      </div>
-    </div>
-  `;
+function missionsForNode(mainCode, nodeId){
+  return state.missions.filter(m => m.mainCode===mainCode && m.nodeId===nodeId);
 }
-function miniHabitHtml(h){
-  const due = h.dueISO ? new Date(h.dueISO).toLocaleDateString() : "";
-  return `
-    <div class="miniBox green" data-hid="${h.id}">
-      <div class="miniTitle">${escapeHtml(h.title)}</div>
-      <div class="miniRow">
-        <span class="chip">Done ${h.points||0}</span>
-        ${due ? `<span class="chip">Due ${escapeHtml(due)}</span>` : ``}
-        <button class="btn small ok" data-act="h-finish">Finish</button>
-        <button class="btn small" data-act="h-undo">Undo</button>
-        <button class="btn small ok" data-act="h-trophy">🏆</button>
-        <button class="btn small bad" data-act="h-del">Del</button>
-      </div>
-    </div>
-  `;
-}
-function bindMiniActions(nodeEl){
-  nodeEl.querySelectorAll('[data-mid]').forEach(box=>{
-    const id = box.getAttribute("data-mid");
-    const m = state.missions.find(x=>x.id===id);
-    if (!m) return;
-    box.querySelectorAll("[data-act]").forEach(btn=>{
-      btn.onclick = (e)=>{
-        e.stopPropagation();
-        const act = btn.getAttribute("data-act");
-        if (act==="m-finish"){ finishMission(m); render(); }
-        else if (act==="m-undo"){ undoMission(m); render(); }
-        else if (act==="m-trophy"){
-          addToTrophyRoom({ mainCode:m.mainCode, title:m.title, desc:m.desc, kind:"mission" });
-          state.missions = state.missions.filter(x=>x.id!==m.id);
-          saveState(); render();
-        } else if (act==="m-del"){
-          if (!confirm(`Delete mission "${m.title}"?`)) return;
-          state.missions = state.missions.filter(x=>x.id!==m.id);
-          saveState(); render();
-        }
-      };
-    });
-  });
-
-  nodeEl.querySelectorAll('[data-hid]').forEach(box=>{
-    const id = box.getAttribute("data-hid");
-    const h = state.habits.find(x=>x.id===id);
-    if (!h) return;
-    box.querySelectorAll("[data-act]").forEach(btn=>{
-      btn.onclick = (e)=>{
-        e.stopPropagation();
-        const act = btn.getAttribute("data-act");
-        if (act==="h-finish"){ finishHabit(h); render(); }
-        else if (act==="h-undo"){ undoHabit(h); render(); }
-        else if (act==="h-trophy"){
-          addToTrophyRoom({ mainCode:h.mainCode, title:h.title, desc:h.desc, kind:"habit" });
-          state.habits = state.habits.filter(x=>x.id!==h.id);
-          saveState(); render();
-        } else if (act==="h-del"){
-          if (!confirm(`Delete habit "${h.title}"?`)) return;
-          state.habits = state.habits.filter(x=>x.id!==h.id);
-          saveState(); render();
-        }
-      };
-    });
-  });
+function habitsForNode(mainCode, nodeId){
+  return state.habits.filter(h => h.mainCode===mainCode && h.nodeId===nodeId);
 }
 
 function renderMainTreeGraph(mainCode, mountEl){
-  const layout = computeTreeLayout(mainCode);
+  const layout = computeTreeLayout(mainCode, false);
 
   const wrap = el(`<div class="graphWrap"><div class="graphStage"></div></div>`);
   const stage = wrap.querySelector(".graphStage");
   stage.style.width = layout.stageW + "px";
   stage.style.height = layout.stageH + "px";
 
+  // Lines SVG
   const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
   svg.setAttribute("class","graphLines");
   stage.appendChild(svg);
 
   const nodeEls = new Map();
 
+  // Main node
   const mainXp = state.skills[mainCode]?.totalXp || 0;
   const mp = xpProgress(mainXp);
   const rootPos = layout.px[layout.rootId] || { left: 420, top: 40 };
-
   const rootNode = el(`
-    <div class="node ${state.ui.selectedNode==null?'selected':''}" style="left:${rootPos.left}px;top:${rootPos.top}px;width:340px">
+    <div class="node ${state.ui.selectedNode==null?'selected':''}" style="left:${rootPos.left}px;top:${rootPos.top}px;width:360px">
       <div class="nodeBtns">
         <button class="nodeBtn primary" title="Select main">✓</button>
         <button class="nodeBtn ok" title="Add top-level subskill">＋</button>
       </div>
       <div class="nodeTitle">${mainCode} — ${escapeHtml(mainskillName(mainCode))}</div>
       <div class="nodeMeta">
+        <span class="chip" style="border-color:${SKILL_COLOR[mainCode]||'#2a2a33'}">${mainCode}</span>
         <span class="chip">Lv ${mp.lvl}</span>
         <span class="chip">XP ${mainXp}</span>
       </div>
-      <div class="hint" style="margin-top:10px">Tap a subskill box to edit description. Use ✓ to select as target. Use ＋ to add child items.</div>
+      <div class="hint" style="margin-top:10px">Tap subskills to edit description. Missions/habits appear as separate child boxes beneath the subskill.</div>
     </div>
   `);
-
   const [rootSel, rootPlus] = rootNode.querySelectorAll("button");
-  rootSel.onclick = (e)=>{
-    e.stopPropagation();
-    state.ui.selectedMain = mainCode;
-    state.ui.selectedNode = null;
-    saveState();
-    render();
-  };
-  rootPlus.onclick = (e)=>{
-    e.stopPropagation();
-    openAddSubskillModal(mainCode, null);
-  };
-  rootNode.onclick = ()=>{
-    state.ui.selectedMain = mainCode;
-    state.ui.selectedNode = null;
-    saveState(); render();
-  };
-
+  rootSel.onclick = (e)=>{ e.stopPropagation(); state.ui.selectedMain = mainCode; state.ui.selectedNode = null; saveState(); render(); };
+  rootPlus.onclick = (e)=>{ e.stopPropagation(); openAddSubskillModal(mainCode, null); };
   stage.appendChild(rootNode);
   nodeEls.set(layout.rootId, rootNode);
 
+  // Subskill nodes
   const all = nodesForMain(mainCode);
   for (const n of all){
     const xp = n.totalXp || 0;
     const p = xpProgress(xp);
     const pos = layout.px[n.id] || { left: 40, top: 220 };
-
-    const ms = state.missions.filter(m => m.mainCode===mainCode && m.nodeId===n.id);
-    const hs = state.habits.filter(h => h.mainCode===mainCode && h.nodeId===n.id);
-
     const isSelected = (state.ui.selectedNode === n.id);
 
     const node = el(`
@@ -1267,62 +1319,118 @@ function renderMainTreeGraph(mainCode, mountEl){
           <span class="chip">Lv ${p.lvl}</span>
           <span class="chip">XP ${xp}</span>
         </div>
-
-        <div class="childArea">
-          <div class="childHeader">Missions</div>
-          <div class="childStack">
-            ${ms.length ? ms.slice(0,3).map(miniMissionHtml).join("") : `<div class="hint">No missions.</div>`}
-            ${(ms.length>3) ? `<div class="hint">More missions… (see Missions tab)</div>` : ``}
-          </div>
-
-          <div class="childHeader" style="margin-top:4px">Habits</div>
-          <div class="childStack greenLine">
-            ${hs.length ? hs.slice(0,3).map(miniHabitHtml).join("") : `<div class="hint">No habits.</div>`}
-            ${(hs.length>3) ? `<div class="hint">More habits… (see Habits tab)</div>` : ``}
-          </div>
-        </div>
       </div>
     `);
 
     const [selBtn, plusBtn, editBtn] = node.querySelectorAll("button");
-    selBtn.onclick = (e)=>{
-      e.stopPropagation();
-      state.ui.selectedMain = mainCode;
-      state.ui.selectedNode = n.id;
-      saveState(); render();
-    };
-    plusBtn.onclick = (e)=>{
-      e.stopPropagation();
-      state.ui.selectedMain = mainCode;
-      state.ui.selectedNode = n.id;
-      saveState();
-      openNodePlusMenu(mainCode, n.id);
-    };
-    editBtn.onclick = (e)=>{
-      e.stopPropagation();
-      openEditSubskillModal(n.id);
-    };
+    selBtn.onclick = (e)=>{ e.stopPropagation(); state.ui.selectedMain=mainCode; state.ui.selectedNode=n.id; saveState(); render(); };
+    plusBtn.onclick = (e)=>{ e.stopPropagation(); state.ui.selectedMain=mainCode; state.ui.selectedNode=n.id; saveState(); openNodePlusMenu(mainCode, n.id); };
+    editBtn.onclick = (e)=>{ e.stopPropagation(); openEditSubskillModal(n.id); };
 
-    // Clicking the box opens edit/description
-    node.onclick = ()=>{
-      state.ui.selectedMain = mainCode;
-      state.ui.selectedNode = n.id;
-      saveState();
-      openEditSubskillModal(n.id);
-    };
-
-    bindMiniActions(node);
+    node.onclick = ()=>{ state.ui.selectedMain=mainCode; state.ui.selectedNode=n.id; saveState(); openEditSubskillModal(n.id); };
 
     stage.appendChild(node);
     nodeEls.set(n.id, node);
+
+    // Render child mission/habit boxes UNDER the subskill (separate boxes)
+    const ms = missionsForNode(mainCode, n.id);
+    const hs = habitsForNode(mainCode, n.id);
+
+    // Stack them (missions then habits) under node
+    const baseLeft = pos.left + 10;
+    let y = pos.top + 140;
+
+    const childBoxes = [];
+
+    for (const m of ms){
+      const reps = m.maxReps == null ? `${m.points||0}/∞` : `${m.points||0}/${m.maxReps}`;
+      const cn = el(`
+        <div class="childNode blue" style="left:${baseLeft}px;top:${y}px">
+          <div class="childTitle">🟦 ${escapeHtml(m.title)}</div>
+          <div class="childRow">
+            <span class="chip">Reps ${escapeHtml(reps)}</span>
+            <button class="btn small ok" data-act="finish">Finish</button>
+            <button class="btn small" data-act="undo">Undo</button>
+            <button class="btn small ok" data-act="trophy">🏆</button>
+            <button class="btn small bad" data-act="del">Del</button>
+          </div>
+        </div>
+      `);
+      cn.querySelectorAll("button").forEach(btn=>{
+        btn.onclick = (e)=>{
+          e.stopPropagation();
+          const act = btn.getAttribute("data-act");
+          if (act==="finish"){ finishMission(m); render(); }
+          else if (act==="undo"){ undoMission(m); render(); }
+          else if (act==="trophy"){
+            addToTrophyRoom({ mainCode:m.mainCode, title:m.title, desc:m.desc, kind:"mission", startAt:m.createdAt, finishedAt:new Date().toISOString(), dueISO:m.dueISO||"" });
+            state.missions = state.missions.filter(x=>x.id!==m.id);
+            saveState(); render();
+          } else if (act==="del"){
+            if (!confirm(`Delete mission "${m.title}"?`)) return;
+            state.missions = state.missions.filter(x=>x.id!==m.id);
+            saveState(); render();
+          }
+        };
+      });
+      stage.appendChild(cn);
+      childBoxes.push({ el: cn, kind:"mission" });
+      y += 96;
+    }
+
+    for (const h of hs){
+      const due = h.dueISO ? fmtDate(h.dueISO) : "";
+      const cn = el(`
+        <div class="childNode green" style="left:${baseLeft}px;top:${y}px">
+          <div class="childTitle">🟩 ${escapeHtml(h.title)}</div>
+          <div class="childRow">
+            <span class="chip">Done ${h.points||0}</span>
+            ${due ? `<span class="chip">Due ${escapeHtml(due)}</span>` : ``}
+            <button class="btn small ok" data-act="finish">Finish</button>
+            <button class="btn small" data-act="undo">Undo</button>
+            <button class="btn small ok" data-act="trophy">🏆</button>
+            <button class="btn small bad" data-act="del">Del</button>
+          </div>
+        </div>
+      `);
+      cn.querySelectorAll("button").forEach(btn=>{
+        btn.onclick = (e)=>{
+          e.stopPropagation();
+          const act = btn.getAttribute("data-act");
+          if (act==="finish"){ finishHabit(h); render(); }
+          else if (act==="undo"){ undoHabit(h); render(); }
+          else if (act==="trophy"){
+            addToTrophyRoom({ mainCode:h.mainCode, title:h.title, desc:h.desc, kind:"habit", startAt:h.createdAt, finishedAt:new Date().toISOString(), dueISO:h.dueISO||"" });
+            state.habits = state.habits.filter(x=>x.id!==h.id);
+            saveState(); render();
+          } else if (act==="del"){
+            if (!confirm(`Delete habit "${h.title}"?`)) return;
+            state.habits = state.habits.filter(x=>x.id!==h.id);
+            saveState(); render();
+          }
+        };
+      });
+      stage.appendChild(cn);
+      childBoxes.push({ el: cn, kind:"habit" });
+      y += 96;
+    }
+
+    // Extend stage height if needed
+    const bottom = y + 60;
+    if (bottom > layout.stageH){
+      stage.style.height = bottom + "px";
+    }
   }
 
   function drawLines(){
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    svg.setAttribute("width", layout.stageW);
-    svg.setAttribute("height", layout.stageH);
-    svg.setAttribute("viewBox", `0 0 ${layout.stageW} ${layout.stageH}`);
+    const w = stage.offsetWidth;
+    const h = stage.offsetHeight;
+    svg.setAttribute("width", w);
+    svg.setAttribute("height", h);
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
 
+    // Subskill edges
     for (const [fromId, toId] of layout.edges){
       const fromEl = nodeEls.get(fromId);
       const toEl = nodeEls.get(toId);
@@ -1338,16 +1446,156 @@ function renderMainTreeGraph(mainCode, mountEl){
       const path = document.createElementNS("http://www.w3.org/2000/svg","path");
       path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY} ${x2} ${midY} ${x2} ${y2}`);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(102,163,255,.85)");
+      path.setAttribute("stroke", SKILL_COLOR[mainCode] || "rgba(102,163,255,.85)");
       path.setAttribute("stroke-width", "4");
       path.setAttribute("stroke-linecap", "round");
       svg.appendChild(path);
+    }
+
+    // Mission/habit child lines: from subskill node bottom to child box top
+    const allNodes = nodesForMain(mainCode);
+    for (const n of allNodes){
+      const fromEl = nodeEls.get(n.id);
+      if (!fromEl) continue;
+      const ms = missionsForNode(mainCode, n.id);
+      const hs = habitsForNode(mainCode, n.id);
+
+      // Find rendered child boxes by scanning stage children that overlap x/y ranges is expensive.
+      // Instead: we redraw by using DOM query for childNode boxes near this node in a vertical stack:
+      // We render them directly after the node, so we can query all childNode and check alignment.
+      const childEls = Array.from(stage.querySelectorAll(".childNode")).filter(c=>{
+        const cx = c.offsetLeft;
+        const cy = c.offsetTop;
+        const nx = fromEl.offsetLeft;
+        const ny = fromEl.offsetTop;
+        return Math.abs(cx - (nx+10)) < 2 && cy >= ny + 120 && cy <= ny + 800;
+      });
+
+      for (const c of childEls){
+        const x1 = fromEl.offsetLeft + 30;
+        const y1 = fromEl.offsetTop + fromEl.offsetHeight;
+        const x2 = c.offsetLeft + 20;
+        const y2 = c.offsetTop;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${(y1+y2)/2} ${x2} ${(y1+y2)/2} ${x2} ${y2}`);
+        path.setAttribute("fill","none");
+        const stroke = c.classList.contains("blue") ? "rgba(74,163,255,.85)" : "rgba(82,210,115,.85)";
+        path.setAttribute("stroke", stroke);
+        path.setAttribute("stroke-width","3");
+        path.setAttribute("stroke-linecap","round");
+        svg.appendChild(path);
+      }
     }
   }
 
   drawLines();
   wrap.addEventListener("scroll", ()=>drawLines(), {passive:true});
   window.addEventListener("resize", ()=>drawLines(), {passive:true});
+
+  mountEl.innerHTML = "";
+  mountEl.appendChild(wrap);
+}
+
+/* =========================
+   MINI TREE FOR SKILLSMAP (not clickable)
+========================= */
+function renderMiniTree(mainCode, mountEl){
+  const layout = computeTreeLayout(mainCode, true);
+  const stageW = mountEl.clientWidth || 280;
+  const stageH = 240;
+
+  const wrap = el(`<div class="miniTree"></div>`);
+  wrap.style.height = stageH + "px";
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("width", stageW);
+  svg.setAttribute("height", stageH);
+  svg.setAttribute("viewBox", `0 0 ${stageW} ${stageH}`);
+  wrap.appendChild(svg);
+
+  const boxes = [];
+
+  // Main box
+  boxes.push({ id: "__ROOT__", left: 10, top: 10, w: 120, h: 30, cls:"miniBox main", text:`${mainCode}` });
+
+  // Subskill boxes (only show first ~10 for readability)
+  const all = nodesForMain(mainCode);
+  const maxShow = 10;
+  const shown = all.slice(0, maxShow);
+
+  // Scale positions to fit panel
+  const px = layout.px;
+  const xs = Object.values(px).map(p=>p.left);
+  const ys = Object.values(px).map(p=>p.top);
+  const minX = Math.min(...xs, 0), maxX = Math.max(...xs, 1);
+  const minY = Math.min(...ys, 0), maxY = Math.max(...ys, 1);
+
+  function scaleX(x){
+    const t = (x - minX) / Math.max(1,(maxX-minX));
+    return 10 + t*(stageW-20-160); // leave space for box width
+  }
+  function scaleY(y){
+    const t = (y - minY) / Math.max(1,(maxY-minY));
+    return 50 + t*(stageH-70);
+  }
+
+  // Place root visually at top-left
+  const rootPos = { left: 10, top: 10 };
+  const rootW = 120, rootH = 30;
+
+  // Place subskills
+  for (const n of shown){
+    const p = px[n.id] || { left: 0, top: 0 };
+    const left = scaleX(p.left);
+    const top = scaleY(p.top);
+    boxes.push({ id: n.id, left, top, w: 160, h: 28, cls:"miniBox", text:n.name, parentId: n.parentId ?? "__ROOT__" });
+  }
+
+  // Lines for shown edges
+  const edgeSet = new Set(shown.map(n=>n.id));
+  for (const [fromId, toId] of layout.edges){
+    if (toId === "__ROOT__") continue;
+    if (!edgeSet.has(toId)) continue;
+    const toBox = boxes.find(b=>b.id===toId);
+    if (!toBox) continue;
+
+    const from = (fromId==="__ROOT__") ? { left: rootPos.left, top: rootPos.top, w:rootW, h:rootH }
+                                      : boxes.find(b=>b.id===fromId);
+
+    if (!from) continue;
+
+    const x1 = from.left + from.w/2;
+    const y1 = from.top + from.h;
+    const x2 = toBox.left + toBox.w/2;
+    const y2 = toBox.top;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${(y1+y2)/2} ${x2} ${(y1+y2)/2} ${x2} ${y2}`);
+    path.setAttribute("fill","none");
+    path.setAttribute("stroke", SKILL_COLOR[mainCode] || "rgba(102,163,255,.65)");
+    path.setAttribute("stroke-width","2.5");
+    path.setAttribute("stroke-linecap","round");
+    svg.appendChild(path);
+  }
+
+  // Add boxes
+  for (const b of boxes){
+    const div = document.createElement("div");
+    div.className = b.cls;
+    div.style.left = b.left + "px";
+    div.style.top = b.top + "px";
+    div.style.width = b.w + "px";
+    div.style.height = b.h + "px";
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.gap = "6px";
+    div.style.borderColor = (b.id==="__ROOT__") ? (SKILL_COLOR[mainCode]||"#2a2a33") : "var(--line)";
+    div.innerHTML = (b.id==="__ROOT__")
+      ? `<span class="swatch" style="background:${SKILL_COLOR[mainCode]||'#888'}"></span><b>${escapeHtml(b.text)}</b>`
+      : `${escapeHtml(b.text)}`;
+    wrap.appendChild(div);
+  }
 
   mountEl.innerHTML = "";
   mountEl.appendChild(wrap);
@@ -1379,7 +1627,7 @@ function pageHeaderWithNotes({kicker, title, subtitle}){
 }
 
 /* =========================
-   SCREENS
+   ROUTE HELPERS
 ========================= */
 function openSkillPage(code, nodeId=null, subView="TREE"){
   state.ui.activeTab = "MAINSKILLS";
@@ -1391,6 +1639,9 @@ function openSkillPage(code, nodeId=null, subView="TREE"){
   render();
 }
 
+/* =========================
+   SCREENS
+========================= */
 function screenProfile(){
   const { cb, pct } = combatProgress();
 
@@ -1426,8 +1677,7 @@ function screenProfile(){
 
       <div class="hr"></div>
 
-      <div class="kicker">Levels (OSRS-like)</div>
-      <div class="hint">Tap any skill tile to open its skill page.</div>
+      <div class="kicker">Levels (tap to open skill page)</div>
       <div class="skillsTiles" id="tiles"></div>
     </div>
   `);
@@ -1439,6 +1689,11 @@ function screenProfile(){
       <div class="hint">Each skill shows: (1) progress to 99 and (2) progress to next level.</div>
       <div class="hr"></div>
       <div class="list" id="overviewList"></div>
+
+      <div class="hr"></div>
+      <div class="kicker">Color legend (skills)</div>
+      <div class="legend" id="skillLegend"></div>
+      <div class="hint">These colors are used in lists and the Stats graph.</div>
     </div>
   `);
 
@@ -1456,18 +1711,24 @@ function screenProfile(){
     render();
   };
 
-  // OSRS-like tiles
+  // Tiles with icons (left side)
   const tiles = left.querySelector("#tiles");
   tiles.innerHTML = "";
   for (const m of MAINSKILLS){
     const xp = state.skills[m.code]?.totalXp || 0;
     const lvl = levelFromTotalXp(xp);
+
     const tile = el(`
       <div class="tile" data-code="${m.code}">
-        <div class="badge">${escapeHtml(m.code)}</div>
+        <div class="skillIcon" style="border-color:${SKILL_COLOR[m.code]||'#2a2a33'}">
+          ${iconSvg(m.code)}
+        </div>
         <div class="tileMain">
-          <div class="tileCode">${escapeHtml(m.name)}</div>
-          <div class="tileLvl">Lv ${lvl}/99</div>
+          <div class="tileCode">
+            <span style="color:${SKILL_COLOR[m.code]||'#fff'}">${escapeHtml(m.code)}</span>
+            <span class="muted">${escapeHtml(m.name)}</span>
+          </div>
+          <div class="tileLvl">Lv ${lvl}/99 • XP ${xp}</div>
         </div>
       </div>
     `);
@@ -1486,10 +1747,10 @@ function screenProfile(){
     const pct99 = clamp(xp / xp99, 0, 1);
 
     const it = el(`
-      <div class="item clickable" data-code="${m.code}">
+      <div class="item clickable" data-code="${m.code}" style="border-left:6px solid ${SKILL_COLOR[m.code]||'#2a2a33'}">
         <div class="row sp wrap">
           <div>
-            <div class="title">${m.code} — ${escapeHtml(m.name)}</div>
+            <div class="title">${escapeHtml(m.code)} — ${escapeHtml(m.name)}</div>
             <div class="meta">
               <span class="chip">Lv ${p.lvl}/99</span>
               <span class="chip">XP ${xp}</span>
@@ -1508,6 +1769,19 @@ function screenProfile(){
 
     it.onclick = ()=> openSkillPage(m.code, null, "TREE");
     list.appendChild(it);
+  }
+
+  // Legend
+  const leg = right.querySelector("#skillLegend");
+  leg.innerHTML = "";
+  for (const m of MAINSKILLS){
+    const item = el(`
+      <div class="legendItem">
+        <span class="swatch" style="background:${SKILL_COLOR[m.code]||'#999'}"></span>
+        <span class="muted">${escapeHtml(m.code)} ${escapeHtml(m.name)}</span>
+      </div>
+    `);
+    leg.appendChild(item);
   }
 
   return c;
@@ -1548,16 +1822,19 @@ function screenMainSkillsList(){
     const trophyCount = state.trophies.filter(t=>t.mainCode===m.code).length;
 
     const it = el(`
-      <div class="item clickable">
+      <div class="item clickable" style="border-left:6px solid ${SKILL_COLOR[m.code]||'#2a2a33'}">
         <div class="row sp wrap">
-          <div>
-            <div class="title">${m.code} — ${escapeHtml(m.name)}</div>
-            <div class="meta">
-              <span class="chip">Lv ${p.lvl}</span>
-              <span class="chip">XP ${xp}</span>
-              <span class="chip">${count} subskills</span>
-              <span class="chip">${goalsCount} goals</span>
-              <span class="chip">${trophyCount} trophies</span>
+          <div class="row" style="gap:12px">
+            <div class="skillIcon" style="border-color:${SKILL_COLOR[m.code]||'#2a2a33'}">${iconSvg(m.code)}</div>
+            <div>
+              <div class="title">${escapeHtml(m.code)} — ${escapeHtml(m.name)}</div>
+              <div class="meta">
+                <span class="chip">Lv ${p.lvl}</span>
+                <span class="chip">XP ${xp}</span>
+                <span class="chip">${count} subskills</span>
+                <span class="chip">${goalsCount} goals</span>
+                <span class="chip">${trophyCount} trophies</span>
+              </div>
             </div>
           </div>
           <span class="chip">Tap</span>
@@ -1592,14 +1869,17 @@ function screenMainSkillDetail(mainCode){
       <div class="card">
         <div class="row sp wrap">
           <div class="row wrap">
-            <!-- Back button on the LEFT -->
+            <!-- Back button on LEFT -->
             <button class="btn" id="back">← Back</button>
-            <div>
-              <div class="kicker">${m.code}</div>
-              <h2 style="margin-top:6px">${escapeHtml(m.name)} — Main Skill Page</h2>
-              <div class="muted">Level ${mp.lvl} • Total XP ${mxp}</div>
-              <div class="hint" style="margin-top:6px">
-                Selected target: <span class="chip">${m.code} / ${escapeHtml(selectedLabel)}</span>
+            <div class="row" style="gap:12px">
+              <div class="skillIcon" style="border-color:${SKILL_COLOR[m.code]||'#2a2a33'}">${iconSvg(m.code)}</div>
+              <div>
+                <div class="kicker">${escapeHtml(m.code)}</div>
+                <h2 style="margin-top:6px">${escapeHtml(m.name)} — Main Skill Page</h2>
+                <div class="muted">Level ${mp.lvl} • Total XP ${mxp}</div>
+                <div class="hint" style="margin-top:6px">
+                  Selected target: <span class="chip">${escapeHtml(m.code)} / ${escapeHtml(selectedLabel)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1650,8 +1930,11 @@ function screenMainSkillDetail(mainCode){
         <div>
           <h3>Tree (boxes + lines)</h3>
           <div id="graphMount"></div>
-          <div class="hint" style="margin-top:8px">
-            Tap a subskill box to edit its description. Missions are separate child boxes (blue). Habits are separate child boxes (green).
+          <div class="legend">
+            <span><span class="swatch" style="background:${SKILL_COLOR[m.code]||'#999'}"></span><span class="muted">Subskill connections</span></span>
+            <span><span class="swatch" style="background:var(--mission)"></span><span class="muted">Missions</span></span>
+            <span><span class="swatch" style="background:var(--habit)"></span><span class="muted">Habits</span></span>
+            <span><span class="swatch" style="background:var(--goal)"></span><span class="muted">Goals (deadlines in Calendar)</span></span>
           </div>
         </div>
         <div class="card">
@@ -1663,7 +1946,10 @@ function screenMainSkillDetail(mainCode){
             <button class="btn ok" id="qaGoal">+ Goal</button>
           </div>
           <div class="hint" style="margin-top:10px">
-            Selected target: <span class="chip">${m.code} / ${escapeHtml(selectedLabel)}</span>
+            Selected target: <span class="chip">${escapeHtml(m.code)} / ${escapeHtml(selectedLabel)}</span>
+          </div>
+          <div class="hint" style="margin-top:10px">
+            Missions/Habits will be created under this subskill and shown as separate child boxes.
           </div>
         </div>
       </div>
@@ -1674,16 +1960,14 @@ function screenMainSkillDetail(mainCode){
     renderMainTreeGraph(mainCode, sub.querySelector("#graphMount"));
 
     sub.querySelector("#qaMission").onclick = ()=>{
-      if (!state.ui.selectedNode) return alert("Select a subskill first (tap a node, then ✓).");
+      if (!state.ui.selectedNode) return alert("Select a subskill first (tap a subskill, then ✓).");
       openQuickAddModal("mission", mainCode, state.ui.selectedNode);
     };
     sub.querySelector("#qaHabit").onclick = ()=>{
-      if (!state.ui.selectedNode) return alert("Select a subskill first (tap a node, then ✓).");
+      if (!state.ui.selectedNode) return alert("Select a subskill first (tap a subskill, then ✓).");
       openQuickAddModal("habit", mainCode, state.ui.selectedNode);
     };
-    sub.querySelector("#qaGoal").onclick = ()=>{
-      openAddGoalModal(mainCode, state.ui.selectedNode);
-    };
+    sub.querySelector("#qaGoal").onclick = ()=> openAddGoalModal(mainCode, state.ui.selectedNode);
 
   } else if (state.ui.skillSubView === "GOALS"){
     const goals = state.goals.filter(g=>g.mainCode===mainCode);
@@ -1691,58 +1975,91 @@ function screenMainSkillDetail(mainCode){
       <div class="grid cols2">
         <div class="card">
           <div class="row sp wrap">
-            <h3 style="margin:0">Goals for ${mainCode}</h3>
+            <h3 style="margin:0">Goals for ${escapeHtml(mainCode)}</h3>
             <button class="btn ok small" id="addGoal2">+ Goal</button>
           </div>
           <div class="hr"></div>
           <div class="list" id="goalList"></div>
         </div>
         <div class="card">
-          <h3 style="margin:0">Tip</h3>
+          <h3 style="margin:0">Finished goals</h3>
           <div class="hr"></div>
-          <div class="muted">Goals automatically appear in the global <b>GOALS</b> tab too.</div>
+          <div class="list" id="doneList"></div>
         </div>
       </div>
     `);
 
     sub.querySelector("#addGoal2").onclick = ()=> openAddGoalModal(mainCode, state.ui.selectedNode);
 
+    const todo = goals.filter(g=>!g.done);
+    const done = goals.filter(g=>g.done);
+
     const list = sub.querySelector("#goalList");
     list.innerHTML = "";
-    if (!goals.length){
-      list.appendChild(el(`<div class="muted">No goals yet.</div>`));
+    if (!todo.length){
+      list.appendChild(el(`<div class="muted">No active goals.</div>`));
     } else {
-      for (const g of goals){
+      for (const g of todo){
         const node = nodeById(g.nodeId);
-        const due = g.dueISO ? new Date(g.dueISO).toLocaleDateString() : "";
+        const due = fmtDate(g.dueISO);
         const it = el(`
-          <div class="item">
+          <div class="item" style="border-left:6px solid var(--goal)">
             <div class="row sp wrap">
               <div>
-                <div class="title">${escapeHtml(g.title)} ${g.done?`<span class="chip">DONE</span>`:""}</div>
+                <div class="title">${escapeHtml(g.title)}</div>
                 <div class="meta">
-                  <span class="chip">${g.mainCode} / ${escapeHtml(node?node.name:"(main)")}</span>
-                  ${due?`<span class="chip">Due: ${escapeHtml(due)}</span>`:""}
+                  <span class="chip">${escapeHtml(g.mainCode)} / ${escapeHtml(node?node.name:"(main)")}</span>
+                  ${due?`<span class="chip">Deadline: ${escapeHtml(due)}</span>`:""}
+                  <span class="chip">Start: ${escapeHtml(fmtDate(g.createdAt))}</span>
                 </div>
                 ${g.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(g.desc)}</div>`:""}
               </div>
               <div class="row wrap">
-                ${g.done?`<button class="btn small">Mark Undone</button>`:`<button class="btn small ok">Mark Done</button>`}
-                <button class="btn small ok">🏆 Trophy</button>
+                <button class="btn small ok">Mark Done</button>
                 <button class="btn small bad">Delete</button>
               </div>
             </div>
           </div>
         `);
-        const [doneBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
-        doneBtn.onclick = ()=>{ g.done = !g.done; saveState(); render(); };
-        trophyBtn.onclick = ()=>{ addToTrophyRoom({ mainCode: g.mainCode, title: g.title, desc: g.desc, kind: "goal" }); saveState(); render(); };
+        const [doneBtn, delBtn] = it.querySelectorAll("button");
+        doneBtn.onclick = ()=>{ setGoalDone(g, true); render(); };
         delBtn.onclick = ()=>{
           if (!confirm(`Delete goal "${g.title}"?`)) return;
           state.goals = state.goals.filter(x=>x.id!==g.id);
           saveState(); render();
         };
         list.appendChild(it);
+      }
+    }
+
+    const doneList = sub.querySelector("#doneList");
+    doneList.innerHTML = "";
+    if (!done.length){
+      doneList.appendChild(el(`<div class="muted">No finished goals.</div>`));
+    } else {
+      for (const g of done){
+        const node = nodeById(g.nodeId);
+        const due = fmtDate(g.dueISO);
+        const it = el(`
+          <div class="item" style="border-left:6px solid rgba(242,201,76,.6)">
+            <div class="row sp wrap">
+              <div>
+                <div class="title">✅ ${escapeHtml(g.title)}</div>
+                <div class="meta">
+                  <span class="chip">${escapeHtml(g.mainCode)} / ${escapeHtml(node?node.name:"(main)")}</span>
+                  ${due?`<span class="chip">Deadline: ${escapeHtml(due)}</span>`:""}
+                  <span class="chip">Start: ${escapeHtml(fmtDate(g.createdAt))}</span>
+                  <span class="chip">Finish: ${escapeHtml(fmtDate(g.finishedAt))}</span>
+                </div>
+              </div>
+              <div class="row wrap">
+                <button class="btn small">Undo Done</button>
+              </div>
+            </div>
+          </div>
+        `);
+        it.querySelector("button").onclick = ()=>{ setGoalDone(g, false); render(); };
+        doneList.appendChild(it);
       }
     }
 
@@ -1754,16 +2071,16 @@ function screenMainSkillDetail(mainCode){
       <div class="grid cols2">
         <div class="card">
           <div class="row sp wrap">
-            <h3 style="margin:0">Trophy Room — ${mainCode}</h3>
+            <h3 style="margin:0">Trophy Room — ${escapeHtml(mainCode)}</h3>
             <button class="btn bad small" id="clear">Clear</button>
           </div>
           <div class="hr"></div>
           <div class="list" id="tList"></div>
         </div>
         <div class="card">
-          <h3 style="margin:0">Auto trophies</h3>
+          <h3 style="margin:0">What goes here</h3>
           <div class="hr"></div>
-          <div class="muted">Missions with max reps automatically move here when completed.</div>
+          <div class="muted">Completed missions (auto on max reps), completed goals (auto), and anything you manually trophy.</div>
         </div>
       </div>
     `);
@@ -1779,15 +2096,18 @@ function screenMainSkillDetail(mainCode){
       list.appendChild(el(`<div class="muted">No trophies yet.</div>`));
     } else {
       for (const t of trophies){
-        const when = new Date(t.createdAt).toLocaleString();
+        const when = fmtDate(t.createdAt);
         const it = el(`
-          <div class="item">
+          <div class="item" style="border-left:6px solid ${SKILL_COLOR[mainCode]||'#2a2a33'}">
             <div class="row sp wrap">
               <div>
                 <div class="title">🏆 ${escapeHtml(t.title)}</div>
                 <div class="meta">
                   <span class="chip">${escapeHtml(t.kind)}</span>
-                  <span class="chip">${escapeHtml(when)}</span>
+                  <span class="chip">Added: ${escapeHtml(when)}</span>
+                  ${t.startAt?`<span class="chip">Start: ${escapeHtml(fmtDate(t.startAt))}</span>`:""}
+                  ${t.finishedAt?`<span class="chip">Finish: ${escapeHtml(fmtDate(t.finishedAt))}</span>`:""}
+                  ${t.dueISO?`<span class="chip">Deadline: ${escapeHtml(fmtDate(t.dueISO))}</span>`:""}
                 </div>
                 ${t.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(t.desc)}</div>`:""}
               </div>
@@ -1812,52 +2132,65 @@ function screenMainSkillDetail(mainCode){
   return root;
 }
 
-/* SKILLSMAP (STATIC OVERVIEW — NOT CLICKABLE) */
+/* SKILLSMAP (2 rows + mini trees; NOT CLICKABLE) */
 function screenSkillsMap(){
   const top = pageHeaderWithNotes({
     kicker:"Skills Map",
-    title:"Strategic overview (static)",
-    subtitle:"Not clickable. Overview of top-level subskills per mainskill on 2 rows."
+    title:"Strategic overview (mini trees)",
+    subtitle:"Not clickable. Organized in two rows of mainskills with a small simplified tree."
   });
+
+  // Requested order:
+  // Top row: SOC MEN FIN CAR SID BUS HOB SCH
+  // Bottom row: PHY LEA APP DIE HOM WOR DAT
+  const topRow = ["SOC","MEN","FIN","CAR","SID","BUS","HOB","SCH"];
+  const bottomRow = ["PHY","LEA","APP","DIE","HOM","WOR","DAT"];
 
   const root = el(`
     <div class="grid">
       <div id="topMount"></div>
-      <div class="mapGrid" id="map"></div>
+      <div class="mapRows">
+        <div class="mapRow" id="r1"></div>
+        <div class="mapRow" id="r2"></div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--mission)"></span><span class="muted">Missions</span></span>
+          <span><span class="swatch" style="background:var(--habit)"></span><span class="muted">Habits</span></span>
+          <span><span class="swatch" style="background:var(--goal)"></span><span class="muted">Goals (deadlines in Calendar)</span></span>
+        </div>
+        <div class="hint">Subskills shown under another subskill are treated as children in your tree (XP flows upward).</div>
+      </div>
     </div>
   `);
   root.querySelector("#topMount").appendChild(top);
 
-  const firstRow = MAINSKILLS.slice(0, 8);
-  const secondRow = MAINSKILLS.slice(8);
-  const order = [...firstRow, ...secondRow];
+  function addPanels(rowEl, codes){
+    for (const code of codes){
+      const m = MAINSKILLS.find(x=>x.code===code);
+      if (!m) continue;
 
-  const map = root.querySelector("#map");
-  map.innerHTML = "";
-
-  for (const m of order){
-    const sub = nodesForMain(m.code).filter(n=>n.parentId==null).map(n=>n.name);
-
-    const panel = el(`
-      <div class="mapPanel">
-        <div class="mapPanelHeader">
-          <div class="code">${escapeHtml(m.code)} — ${escapeHtml(m.name)}</div>
-          <div class="muted">${sub.length} top subskills</div>
+      const panel = el(`
+        <div class="mapPanel">
+          <div class="mapPanelHeader">
+            <div class="code">
+              <span class="swatch" style="background:${SKILL_COLOR[code]||'#999'}"></span>
+              <span>${escapeHtml(code)} — ${escapeHtml(m.name)}</span>
+            </div>
+            <div class="muted">Lv ${levelFromTotalXp(state.skills[code]?.totalXp||0)}/99</div>
+          </div>
+          <div class="miniTree" data-code="${escapeHtml(code)}"></div>
         </div>
-        <div class="mapBoxes" aria-hidden="true"></div>
-      </div>
-    `);
+      `);
 
-    const boxes = panel.querySelector(".mapBoxes");
-    if (!sub.length){
-      boxes.appendChild(el(`<div class="muted" style="padding:6px 2px">No top-level subskills yet.</div>`));
-    } else {
-      for (const s of sub){
-        boxes.appendChild(el(`<div class="mapBox">${escapeHtml(s)}</div>`));
-      }
+      rowEl.appendChild(panel);
+      renderMiniTree(code, panel.querySelector(".miniTree"));
     }
-    map.appendChild(panel);
   }
+
+  addPanels(root.querySelector("#r1"), topRow);
+  addPanels(root.querySelector("#r2"), bottomRow);
 
   return root;
 }
@@ -1888,14 +2221,16 @@ function screenMissions(){
   for (const ms of state.missions){
     const n = nodeById(ms.nodeId);
     const reps = ms.maxReps == null ? `${ms.points||0} / ∞` : `${ms.points||0} / ${ms.maxReps}`;
+    const due = fmtDate(ms.dueISO);
     const it = el(`
-      <div class="item">
+      <div class="item" style="border-left:6px solid var(--mission)">
         <div class="row sp wrap">
           <div>
             <div class="title">${escapeHtml(ms.title)}</div>
             <div class="meta">
               <span class="chip">${ms.mainCode} / ${escapeHtml(n ? n.name : "(main)")}</span>
               <span class="chip">Reps ${escapeHtml(reps)}</span>
+              ${due?`<span class="chip">Due ${escapeHtml(due)}</span>`:""}
             </div>
             ${ms.desc ? `<div class="muted" style="margin-top:6px">${escapeHtml(ms.desc)}</div>` : ""}
           </div>
@@ -1913,7 +2248,7 @@ function screenMissions(){
     finishBtn.onclick = ()=>{ finishMission(ms); render(); };
     undoBtn.onclick = ()=>{ undoMission(ms); render(); };
     trophyBtn.onclick = ()=>{
-      addToTrophyRoom({ mainCode: ms.mainCode, title: ms.title, desc: ms.desc, kind: "mission" });
+      addToTrophyRoom({ mainCode: ms.mainCode, title: ms.title, desc: ms.desc, kind: "mission", startAt: ms.createdAt, finishedAt: new Date().toISOString(), dueISO: ms.dueISO||"" });
       state.missions = state.missions.filter(x=>x.id!==ms.id);
       saveState(); render();
     };
@@ -1954,9 +2289,9 @@ function screenHabits(){
 
   for (const h of state.habits){
     const n = nodeById(h.nodeId);
-    const due = h.dueISO ? new Date(h.dueISO).toLocaleDateString() : "";
+    const due = fmtDate(h.dueISO);
     const it = el(`
-      <div class="item">
+      <div class="item" style="border-left:6px solid var(--habit)">
         <div class="row sp wrap">
           <div>
             <div class="title">${escapeHtml(h.title)}</div>
@@ -1981,7 +2316,7 @@ function screenHabits(){
     finishBtn.onclick = ()=>{ finishHabit(h); render(); };
     undoBtn.onclick = ()=>{ undoHabit(h); render(); };
     trophyBtn.onclick = ()=>{
-      addToTrophyRoom({ mainCode: h.mainCode, title: h.title, desc: h.desc, kind: "habit" });
+      addToTrophyRoom({ mainCode: h.mainCode, title: h.title, desc: h.desc, kind: "habit", startAt: h.createdAt, finishedAt: new Date().toISOString(), dueISO: h.dueISO||"" });
       state.habits = state.habits.filter(x=>x.id!==h.id);
       saveState(); render();
     };
@@ -1999,70 +2334,530 @@ function screenHabits(){
 
 /* GOALS TAB */
 function screenGoals(){
-  const top = pageHeaderWithNotes({ kicker:"Goals", title:"All goals (auto collected)", subtitle:"Goals added under any skill automatically appear here." });
+  const top = pageHeaderWithNotes({ kicker:"Goals", title:"All goals", subtitle:"Finished goals also appear here, and automatically go to the correct skill Trophy Room." });
 
   const root = el(`
     <div class="grid">
       <div id="topMount"></div>
-      <div class="card">
-        <h3>Goals</h3>
-        <div class="list" id="list"></div>
+      <div class="grid cols2">
+        <div class="card">
+          <h3>Active goals</h3>
+          <div class="list" id="todo"></div>
+        </div>
+        <div class="card">
+          <h3>Finished goals</h3>
+          <div class="list" id="done"></div>
+        </div>
       </div>
     </div>
   `);
   root.querySelector("#topMount").appendChild(top);
 
-  const list = root.querySelector("#list");
-  list.innerHTML = "";
+  const todoEl = root.querySelector("#todo");
+  const doneEl = root.querySelector("#done");
+  todoEl.innerHTML = "";
+  doneEl.innerHTML = "";
 
-  if (!state.goals.length){
-    list.appendChild(el(`<div class="muted">No goals yet.</div>`));
-    return root;
-  }
+  const todo = state.goals.filter(g=>!g.done);
+  const done = state.goals.filter(g=>g.done);
 
-  const sorted = [...state.goals].sort((a,b)=>{
-    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
-    const ad = a.dueISO ? new Date(a.dueISO).getTime() : Infinity;
-    const bd = b.dueISO ? new Date(b.dueISO).getTime() : Infinity;
-    return ad - bd;
-  });
+  if (!todo.length) todoEl.appendChild(el(`<div class="muted">No active goals.</div>`));
+  if (!done.length) doneEl.appendChild(el(`<div class="muted">No finished goals.</div>`));
 
-  for (const g of sorted){
+  for (const g of todo){
     const node = nodeById(g.nodeId);
-    const due = g.dueISO ? new Date(g.dueISO).toLocaleDateString() : "";
+    const due = fmtDate(g.dueISO);
     const it = el(`
-      <div class="item">
+      <div class="item" style="border-left:6px solid var(--goal)">
         <div class="row sp wrap">
           <div>
-            <div class="title">${escapeHtml(g.title)} ${g.done?`<span class="chip">DONE</span>`:""}</div>
+            <div class="title">${escapeHtml(g.title)}</div>
             <div class="meta">
-              <span class="chip">${g.mainCode} — ${escapeHtml(mainskillName(g.mainCode))}</span>
-              <span class="chip">${g.mainCode} / ${escapeHtml(node?node.name:"(main)")}</span>
-              ${due?`<span class="chip">Due: ${escapeHtml(due)}</span>`:""}
+              <span class="chip" style="border-color:${SKILL_COLOR[g.mainCode]||'#2a2a33'}">${escapeHtml(g.mainCode)}</span>
+              <span class="chip">${escapeHtml(g.mainCode)} / ${escapeHtml(node?node.name:"(main)")}</span>
+              ${due?`<span class="chip">Deadline: ${escapeHtml(due)}</span>`:""}
+              <span class="chip">Start: ${escapeHtml(fmtDate(g.createdAt))}</span>
             </div>
             ${g.desc?`<div class="muted" style="margin-top:6px">${escapeHtml(g.desc)}</div>`:""}
           </div>
           <div class="row wrap">
             <button class="btn small primary">Open Skill</button>
-            ${g.done?`<button class="btn small">Undone</button>`:`<button class="btn small ok">Done</button>`}
-            <button class="btn small ok">🏆</button>
+            <button class="btn small ok">Mark Done</button>
             <button class="btn small bad">Delete</button>
           </div>
         </div>
       </div>
     `);
-
-    const [openBtn, doneBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
+    const [openBtn, doneBtn, delBtn] = it.querySelectorAll("button");
     openBtn.onclick = ()=> openSkillPage(g.mainCode, g.nodeId || null, "GOALS");
-    doneBtn.onclick = ()=>{ g.done = !g.done; saveState(); render(); };
-    trophyBtn.onclick = ()=>{ addToTrophyRoom({ mainCode: g.mainCode, title: g.title, desc: g.desc, kind: "goal" }); saveState(); render(); };
+    doneBtn.onclick = ()=>{ setGoalDone(g, true); render(); };
     delBtn.onclick = ()=>{
       if (!confirm(`Delete goal "${g.title}"?`)) return;
       state.goals = state.goals.filter(x=>x.id!==g.id);
       saveState(); render();
     };
+    todoEl.appendChild(it);
+  }
 
-    list.appendChild(it);
+  for (const g of done){
+    const node = nodeById(g.nodeId);
+    const due = fmtDate(g.dueISO);
+    const it = el(`
+      <div class="item" style="border-left:6px solid rgba(242,201,76,.6)">
+        <div class="row sp wrap">
+          <div>
+            <div class="title">✅ ${escapeHtml(g.title)}</div>
+            <div class="meta">
+              <span class="chip" style="border-color:${SKILL_COLOR[g.mainCode]||'#2a2a33'}">${escapeHtml(g.mainCode)}</span>
+              <span class="chip">${escapeHtml(g.mainCode)} / ${escapeHtml(node?node.name:"(main)")}</span>
+              ${due?`<span class="chip">Deadline: ${escapeHtml(due)}</span>`:""}
+              <span class="chip">Start: ${escapeHtml(fmtDate(g.createdAt))}</span>
+              <span class="chip">Finish: ${escapeHtml(fmtDate(g.finishedAt))}</span>
+            </div>
+          </div>
+          <div class="row wrap">
+            <button class="btn small primary">Open Skill</button>
+            <button class="btn small">Undo Done</button>
+          </div>
+        </div>
+      </div>
+    `);
+    const [openBtn, undoBtn] = it.querySelectorAll("button");
+    openBtn.onclick = ()=> openSkillPage(g.mainCode, g.nodeId || null, "TROPHY");
+    undoBtn.onclick = ()=>{ setGoalDone(g, false); render(); };
+    doneEl.appendChild(it);
+  }
+
+  return root;
+}
+
+/* CALENDAR (month + year style) */
+function getCalendarEvents(){
+  // Show due dates for missions/habits/goals (color-coded). If no due, we skip for calendar.
+  const evts = [];
+  for (const m of state.missions){
+    if (!m.dueISO) continue;
+    evts.push({ type:"mission", dateKey: todayKey(new Date(m.dueISO)), title: `${m.mainCode}: ${m.title}`, ref:{kind:"mission", id:m.id} });
+  }
+  for (const h of state.habits){
+    if (!h.dueISO) continue;
+    evts.push({ type:"habit", dateKey: todayKey(new Date(h.dueISO)), title: `${h.mainCode}: ${h.title}`, ref:{kind:"habit", id:h.id} });
+  }
+  for (const g of state.goals){
+    if (!g.dueISO) continue;
+    evts.push({ type:"goal", dateKey: todayKey(new Date(g.dueISO)), title: `${g.mainCode}: ${g.title}`, ref:{kind:"goal", id:g.id} });
+  }
+  return evts;
+}
+
+function monthMatrix(yyyy_mm){
+  const [yS,mS] = yyyy_mm.split("-");
+  const y = Number(yS), m = Number(mS) - 1;
+  const first = new Date(y, m, 1);
+  const startDow = (first.getDay() + 6) % 7; // Mon=0
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  const cells = [];
+  for (let i=0;i<startDow;i++) cells.push({ day:0, key:"" });
+
+  for (let d=1; d<=daysInMonth; d++){
+    const key = todayKey(new Date(y, m, d));
+    cells.push({ day:d, key });
+  }
+  while (cells.length % 7 !== 0) cells.push({ day:0, key:"" });
+  return { y, m, cells };
+}
+
+function screenCalendar(){
+  const top = pageHeaderWithNotes({
+    kicker:"Calendar",
+    title:"Missions / Habits / Goals",
+    subtitle:"Google-calendar style month grid. Blue=missions, Green=habits, Gold=goals. (Only items with a due date appear.)"
+  });
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="card">
+        <div class="calHeader">
+          <div class="row wrap">
+            <button class="btn" id="prev">←</button>
+            <button class="btn" id="next">→</button>
+            <span class="chip" id="label"></span>
+          </div>
+          <div class="row wrap">
+            <button class="btn ${state.ui.calView==="MONTH"?"primary":""}" id="month">Month</button>
+            <button class="btn ${state.ui.calView==="YEAR"?"primary":""}" id="year">Year</button>
+          </div>
+        </div>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--mission)"></span><span class="muted">Missions (due)</span></span>
+          <span><span class="swatch" style="background:var(--habit)"></span><span class="muted">Habits (due)</span></span>
+          <span><span class="swatch" style="background:var(--goal)"></span><span class="muted">Goals (deadline)</span></span>
+        </div>
+        <div class="hr"></div>
+        <div id="mount"></div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const evts = getCalendarEvents();
+  const mount = root.querySelector("#mount");
+
+  function setMonth(yyyy_mm){
+    state.ui.calMonth = yyyy_mm;
+    saveState();
+    render();
+  }
+
+  root.querySelector("#month").onclick = ()=>{ state.ui.calView="MONTH"; saveState(); render(); };
+  root.querySelector("#year").onclick = ()=>{ state.ui.calView="YEAR"; saveState(); render(); };
+
+  const [yy,mm] = state.ui.calMonth.split("-").map(Number);
+  const monthName = new Date(yy, mm-1, 1).toLocaleString(undefined,{month:"long",year:"numeric"});
+  root.querySelector("#label").textContent = monthName;
+
+  root.querySelector("#prev").onclick = ()=>{
+    if (state.ui.calView==="MONTH"){
+      const d = new Date(yy, mm-2, 1);
+      setMonth(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+    } else {
+      const d = new Date(yy-1, 0, 1);
+      setMonth(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+    }
+  };
+  root.querySelector("#next").onclick = ()=>{
+    if (state.ui.calView==="MONTH"){
+      const d = new Date(yy, mm, 1);
+      setMonth(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+    } else {
+      const d = new Date(yy+1, 0, 1);
+      setMonth(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+    }
+  };
+
+  if (state.ui.calView==="MONTH"){
+    const { y, m, cells } = monthMatrix(state.ui.calMonth);
+    const dow = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+    const grid = el(`<div></div>`);
+    const head = el(`<div class="calGrid"></div>`);
+    for (const d of dow) head.appendChild(el(`<div class="dow">${d}</div>`));
+    grid.appendChild(head);
+
+    const cal = el(`<div class="calGrid"></div>`);
+    for (const cell of cells){
+      const dayEvents = cell.key ? evts.filter(e=>e.dateKey===cell.key) : [];
+      const cellEl = el(`
+        <div class="dayCell">
+          <div class="dayNum">
+            <span>${cell.day?cell.day:""}</span>
+            <span class="muted">${cell.key===todayKey() ? "Today" : ""}</span>
+          </div>
+          <div class="events"></div>
+        </div>
+      `);
+      const eventsEl = cellEl.querySelector(".events");
+      for (const e of dayEvents.slice(0,4)){
+        const evtEl = el(`<div class="evt ${e.type}">${escapeHtml(e.title)}</div>`);
+        eventsEl.appendChild(evtEl);
+      }
+      if (dayEvents.length>4) eventsEl.appendChild(el(`<div class="hint">+${dayEvents.length-4} more…</div>`));
+      cal.appendChild(cellEl);
+    }
+    grid.appendChild(cal);
+    mount.appendChild(grid);
+
+  } else {
+    // YEAR view: 12 mini month grids with day numbers clearly visible
+    const y = yy;
+    const wrap = el(`<div class="grid cols3"></div>`);
+    for (let mon=0; mon<12; mon++){
+      const yyyy_mm = `${y}-${String(mon+1).padStart(2,"0")}`;
+      const { cells } = monthMatrix(yyyy_mm);
+      const monthLabel = new Date(y, mon, 1).toLocaleString(undefined,{month:"long"});
+
+      const box = el(`
+        <div class="item clickable" style="padding:10px">
+          <div class="row sp wrap">
+            <div class="title">${escapeHtml(monthLabel)}</div>
+            <span class="chip">${yyyy_mm}</span>
+          </div>
+          <div class="calGrid" style="margin-top:8px;gap:4px"></div>
+        </div>
+      `);
+      const g = box.querySelector(".calGrid");
+      const dow = ["M","T","W","T","F","S","S"];
+      for (const d of dow) g.appendChild(el(`<div class="dow" style="padding:2px 0;font-size:10px">${d}</div>`));
+
+      for (const cell of cells){
+        const has = cell.key ? evts.some(e=>e.dateKey===cell.key) : false;
+        const cellMini = el(`
+          <div class="dayCell" style="min-height:28px;padding:4px;border-radius:8px;${has?'outline:2px solid rgba(242,201,76,.25)':''}">
+            <div class="dayNum" style="font-size:10px">
+              <span>${cell.day?cell.day:""}</span>
+              <span></span>
+            </div>
+          </div>
+        `);
+        g.appendChild(cellMini);
+      }
+
+      box.onclick = ()=>{ state.ui.calView="MONTH"; setMonth(yyyy_mm); };
+      wrap.appendChild(box);
+    }
+    mount.appendChild(wrap);
+  }
+
+  return root;
+}
+
+/* STATS */
+function aggregateXpLog(days){
+  const end = new Date();
+  end.setHours(0,0,0,0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days-1));
+
+  const dayList = [];
+  for (let i=0;i<days;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dayList.push(todayKey(d));
+  }
+
+  const bySkill = {};
+  for (const m of MAINSKILLS) bySkill[m.code] = new Array(days).fill(0);
+
+  for (const e of state.xpLog){
+    const idx = dayList.indexOf(e.day);
+    if (idx === -1) continue;
+    if (!bySkill[e.mainCode]) bySkill[e.mainCode] = new Array(days).fill(0);
+    bySkill[e.mainCode][idx] += e.delta;
+  }
+
+  return { dayList, bySkill };
+}
+
+function bestStreakFromLog(){
+  // streak = consecutive days with total positive XP across ANY skill
+  const days = 120;
+  const { dayList, bySkill } = aggregateXpLog(days);
+  const totals = dayList.map((_,i)=>{
+    let s = 0;
+    for (const m of MAINSKILLS) s += (bySkill[m.code]?.[i] || 0);
+    return s;
+  });
+
+  let best = 0, cur = 0;
+  for (const v of totals){
+    if (v>0){ cur++; best = Math.max(best, cur); }
+    else cur = 0;
+  }
+
+  // current streak from end
+  let current = 0;
+  for (let i=totals.length-1;i>=0;i--){
+    if (totals[i]>0) current++;
+    else break;
+  }
+
+  return { best, current };
+}
+
+function topImprovements(days){
+  const { bySkill } = aggregateXpLog(days);
+  const sums = MAINSKILLS.map(m=>{
+    const arr = bySkill[m.code] || [];
+    const sum = arr.reduce((a,b)=>a+b,0);
+    return { code:m.code, name:m.name, sum };
+  }).sort((a,b)=>b.sum-a.sum);
+
+  return sums.slice(0,5);
+}
+
+function screenStats(){
+  const top = pageHeaderWithNotes({
+    kicker:"Statistics",
+    title:"Trends, streaks, and XP gain",
+    subtitle:"Graph shows XP delta per day for all skills (last N days)."
+  });
+
+  const days = clamp(Number(state.ui.statsRangeDays)||30, 7, 120);
+  const { dayList, bySkill } = aggregateXpLog(days);
+
+  const totalsByDay = dayList.map((_,i)=>{
+    let s = 0;
+    for (const m of MAINSKILLS) s += (bySkill[m.code]?.[i]||0);
+    return s;
+  });
+
+  const { best, current } = bestStreakFromLog();
+  const top7 = topImprovements(7);
+  const top30 = topImprovements(30);
+
+  const root = el(`
+    <div class="grid">
+      <div id="topMount"></div>
+
+      <div class="grid cols2">
+        <div class="card">
+          <div class="row sp wrap">
+            <h3 style="margin:0">XP gain per day (all skills)</h3>
+            <div class="row wrap">
+              <span class="chip">Range</span>
+              <select id="range">
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+                <option value="120">120 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <canvas id="chart" width="980" height="320"></canvas>
+          <div class="legendList" id="legend"></div>
+          <div class="hint">Lines are skill-colored. Positive/negative XP are both shown (undo lowers the day).</div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0">Highlights</h3>
+          <div class="hr"></div>
+          <div class="item">
+            <div class="title">Streaks</div>
+            <div class="meta">
+              <span class="chip">Current streak: <b>${current}</b> days</span>
+              <span class="chip">Best streak: <b>${best}</b> days</span>
+            </div>
+            <div class="hint">A streak day = any positive XP gain that day (any skill).</div>
+          </div>
+
+          <div class="item">
+            <div class="title">Top skill improvements (7d)</div>
+            <div class="meta" id="top7"></div>
+          </div>
+
+          <div class="item">
+            <div class="title">Top skill improvements (30d)</div>
+            <div class="meta" id="top30"></div>
+          </div>
+
+          <div class="item">
+            <div class="title">Totals (range)</div>
+            <div class="meta">
+              <span class="chip">Total XP change: <b>${totalsByDay.reduce((a,b)=>a+b,0)}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(top);
+
+  const rangeSel = root.querySelector("#range");
+  rangeSel.value = String(days);
+  rangeSel.onchange = ()=>{
+    state.ui.statsRangeDays = Number(rangeSel.value);
+    saveState();
+    render();
+  };
+
+  // Top improvements UI
+  const top7El = root.querySelector("#top7");
+  top7El.innerHTML = top7.map(x=>`<span class="chip" style="border-color:${SKILL_COLOR[x.code]||'#2a2a33'}">${x.code} +${x.sum}</span>`).join("");
+  const top30El = root.querySelector("#top30");
+  top30El.innerHTML = top30.map(x=>`<span class="chip" style="border-color:${SKILL_COLOR[x.code]||'#2a2a33'}">${x.code} +${x.sum}</span>`).join("");
+
+  // Draw chart
+  const canvas = root.querySelector("#chart");
+  const ctx = canvas.getContext("2d");
+
+  function draw(){
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    // Background grid
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    for (let i=0;i<=10;i++){
+      const y = 20 + i*(H-40)/10;
+      ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(W-10,y); ctx.stroke();
+    }
+    for (let i=0;i<=10;i++){
+      const x = 40 + i*(W-60)/10;
+      ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,H-20); ctx.stroke();
+    }
+
+    // Determine scale from all skills
+    let minV = 0, maxV = 0;
+    for (const m of MAINSKILLS){
+      const arr = bySkill[m.code] || [];
+      for (const v of arr){ minV = Math.min(minV, v); maxV = Math.max(maxV, v); }
+    }
+    // give some padding
+    const pad = Math.max(2, Math.ceil((maxV-minV)*0.08));
+    minV -= pad; maxV += pad;
+    if (minV === maxV){ minV -= 1; maxV += 1; }
+
+    // Axes labels
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.font = "12px system-ui";
+    ctx.fillText(`${dayList[0]}`, 40, H-6);
+    ctx.fillText(`${dayList[dayList.length-1]}`, W-110, H-6);
+    ctx.fillText(`min ${minV}`, 6, H-20);
+    ctx.fillText(`max ${maxV}`, 6, 28);
+
+    function xFor(i){
+      const span = Math.max(1, dayList.length-1);
+      return 40 + i*(W-60)/span;
+    }
+    function yFor(v){
+      const t = (v - minV) / (maxV - minV);
+      return (H-20) - t*(H-40);
+    }
+
+    // Zero line
+    if (minV < 0 && maxV > 0){
+      const y0 = yFor(0);
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
+      ctx.beginPath(); ctx.moveTo(40,y0); ctx.lineTo(W-10,y0); ctx.stroke();
+    }
+
+    // Draw each skill line
+    for (const m of MAINSKILLS){
+      const arr = bySkill[m.code] || [];
+      const col = SKILL_COLOR[m.code] || "#ffffff";
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = 0.95;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      for (let i=0;i<arr.length;i++){
+        const x = xFor(i);
+        const y = yFor(arr[i]);
+        if (i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  draw();
+
+  // Legend
+  const legend = root.querySelector("#legend");
+  legend.innerHTML = "";
+  for (const m of MAINSKILLS){
+    const it = el(`
+      <div class="legendItem">
+        <span class="swatch" style="background:${SKILL_COLOR[m.code]||'#999'}"></span>
+        <span class="muted">${escapeHtml(m.code)}</span>
+      </div>
+    `);
+    legend.appendChild(it);
   }
 
   return root;
@@ -2270,6 +3065,8 @@ function render(){
   else if (tab==="MISSIONS") mainEl.appendChild(screenMissions());
   else if (tab==="HABITS") mainEl.appendChild(screenHabits());
   else if (tab==="GOALS") mainEl.appendChild(screenGoals());
+  else if (tab==="CALENDAR") mainEl.appendChild(screenCalendar());
+  else if (tab==="STATS") mainEl.appendChild(screenStats());
   else if (tab==="INVESTMENTS") mainEl.appendChild(screenInvestments());
   else if (tab==="NOTES") mainEl.appendChild(screenNotes());
   else mainEl.appendChild(screenProfile());
